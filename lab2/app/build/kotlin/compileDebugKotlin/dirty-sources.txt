@@ -1,0 +1,1 @@
+C:\Users\44750\AndroidStudioProjects\lab2\app\src\main\java\com\example\lab2\MainActivity.kt
