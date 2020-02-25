@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="top"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/welcomeText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Colour Changer"
+        />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteY="19dp">
+
+        <Button
+            android:id="@+id/red"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="24dp"
+            android:text="Red"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/blue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="32dp"
+            android:text="Blue"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/green"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Green"
+            app:layout_constraintEnd_toStartOf="@+id/blue"
+            app:layout_constraintStart_toEndOf="@+id/red"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/purple"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Purple\n-----"
+        />
+
+    <TextView
+        android:id="@+id/yellow"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Yellow\n-----"
+        />
+
+    <TextView
+        android:id="@+id/orange"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Orange\n-----"
+        />
+
+    <TextView
+        android:id="@+id/pink"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Pink\n-----"
+        />
+
+
+</LinearLayout>
