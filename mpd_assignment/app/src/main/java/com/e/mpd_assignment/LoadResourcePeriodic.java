@@ -14,6 +14,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 //could update this class to use the singleton pattern and integrate LoadResource to reduce duplication.
 public class LoadResourcePeriodic extends AsyncTask<Void, Void, Void> {
@@ -87,12 +90,20 @@ public class LoadResourcePeriodic extends AsyncTask<Void, Void, Void> {
                     dataRepository.clearPlannedRoadworkData();
                     parseXML(plannedRoadWorks);
                 }
-                //if(different){
-                    callback.dataUpdated();
-                //}
+
+                if(different){
+                    publishProgress();
+                }
             }
         }
         return null;
+    }
+
+
+
+    @Override
+    public void onProgressUpdate(Void... v){
+        callback.dataUpdated();
     }
 
     private boolean checkInternet(){

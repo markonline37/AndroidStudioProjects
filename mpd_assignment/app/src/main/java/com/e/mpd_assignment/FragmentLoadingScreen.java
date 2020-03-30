@@ -36,6 +36,7 @@ public class FragmentLoadingScreen extends Fragment implements LoadResource.Load
     @Override
     public void dataFullyLoaded(){
         callback.loadingComplete();
+
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){

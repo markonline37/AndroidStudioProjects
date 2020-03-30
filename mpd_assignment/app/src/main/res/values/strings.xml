@@ -3,4 +3,15 @@
     <string name="left_button">Left Button</string>
     <string name="middle_button">Middle Button</string>
     <string name="right_button">Right Button</string>
+    <string name="Open">Open main menu</string>
+    <string name="Close">Close main menu</string>
+    <string name="map_show_incidents">Map - Show Incidents</string>
+    <string name="map_show_roadworks">Map - Show Roadworks</string>
+    <string name="map_show_planned_roadworks">Map - Show Planned Roadworks</string>
+    <string name="map_follow_me">Map - Follow Me</string>
+    <string name="view_incidents">View Incidents</string>
+    <string name="view_roadworks">View Roadworks</string>
+    <string name="view_planned_roadworks">View Planned Roadworks</string>
+    <string name="back">Back\nTo Map</string>
+    <string name="planned_roadworks">Planned\nRoadworks</string>
 </resources>

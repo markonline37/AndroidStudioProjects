@@ -8,8 +8,8 @@ public class PlannedRoadwork {
     private String description;
     private Date startDate;
     private Date endDate;
-    private String latitude;
-    private String longitude;
+    private double latitude;
+    private double longitude;
 
     public void setTitle(String input){
         this.title = input;
@@ -48,7 +48,33 @@ public class PlannedRoadwork {
     }
 
     public void setLatLon(String input){
-        this.latitude = input.split(" ")[0];
-        this.longitude = input.split(" ")[1];
+        String tempLat = input.split(" ")[0];
+        String tempLon = input.split(" ")[1];
+        this.latitude = Double.parseDouble(tempLat);
+        this.longitude = Double.parseDouble(tempLon);
+    }
+
+    public String getTitle(){
+        return this.title;
+    }
+
+    public String getDescription(){
+        return this.description;
+    }
+
+    public double getLat(){
+        return this.latitude;
+    }
+
+    public double getLon(){
+        return this.longitude;
+    }
+
+    public String getStartDate(){
+        return this.startDate.toString();
+    }
+
+    public String getEndDate(){
+        return this.endDate.toString();
     }
 }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mapIncidents"
+        android:icon="@drawable/navincidenticon"
+        android:title="@string/map_show_incidents" />
+
+    <item
+        android:id="@+id/mapRoadworks"
+        android:icon="@drawable/roadworksicon"
+        android:title="@string/map_show_roadworks"/>
+
+    <item
+        android:id="@+id/mapPlannedRoadworks"
+        android:icon="@drawable/plannedroadworksicon"
+        android:title="@string/map_show_planned_roadworks"/>
+
+    <item
+        android:id="@+id/mapFollowMe"
+        android:icon="@drawable/mymarker"
+        android:title="@string/map_follow_me"/>
+
+    <item
+        android:id="@+id/buttonIncidents"
+        android:icon="@drawable/incidenticon"
+        android:title="@string/view_incidents"/>
+
+    <item
+        android:id="@+id/buttonRoadworks"
+        android:icon="@drawable/roadworksicon"
+        android:title="@string/view_roadworks"/>
+
+    <item
+        android:id="@+id/buttonPlannedRoadworks"
+        android:icon="@drawable/plannedroadworksicon"
+        android:title="@string/view_planned_roadworks"/>
+</menu>

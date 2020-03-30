@@ -17,7 +17,7 @@ import java.net.URL;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-public class LoadResource extends AsyncTask<Void, Integer, Void> {
+public class LoadResource extends AsyncTask<Void, Integer, String> {
 
     private ProgressBar progressBar;
     private TextView loadingText;
@@ -37,6 +37,7 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
 
     public LoadResource(LoadResourceListener callback){
         this.callback = callback;
+
     }
 
     protected void onPreExecute(ProgressBar progressBar, TextView loadingText, DataRepository dataRepository){
@@ -56,7 +57,7 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... params){
+    protected String doInBackground(Void... params){
         try{
             loadIncidents();
             publishProgress(1);
@@ -67,8 +68,13 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
         }catch(Exception e){
             System.out.println("Error-LoadResource-doInBackground(): "+e);
         }
-        callback.dataFullyLoaded();
+
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(String result){
+        callback.dataFullyLoaded();
     }
 
     private boolean checkInternetStatus(Context context){
@@ -208,7 +214,7 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
                             String temp = xpp.nextText();
                             roadwork.setDescription(temp);
                             roadwork.setDate(temp);
-                        }else if(xpp.getName().equalsIgnoreCase("georss:point")){
+                        }else if(xpp.getName().equalsIgnoreCase("point")){
                             roadwork.setLatLon(xpp.nextText());
                         }
                     }
@@ -222,7 +228,7 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
                             String temp = xpp.nextText();
                             plannedRoadwork.setDescription(temp);
                             plannedRoadwork.setDate(temp);
-                        }else if(xpp.getName().equalsIgnoreCase("georss:point")){
+                        }else if(xpp.getName().equalsIgnoreCase("point")){
                             plannedRoadwork.setLatLon(xpp.nextText());
                         }
                     }
@@ -233,9 +239,8 @@ public class LoadResource extends AsyncTask<Void, Integer, Void> {
                         }else if(xpp.getName().equalsIgnoreCase("title")){
                             incident.setTitle(xpp.nextText());
                         }else if(xpp.getName().equalsIgnoreCase("description")){
-                            String temp = xpp.nextText();
-                            incident.setDescription(temp);
-                        }else if(xpp.getName().equalsIgnoreCase("georss:point")){
+                            incident.setDescription(xpp.nextText());
+                        }else if(xpp.getName().equalsIgnoreCase("point")){
                             incident.setLatLon(xpp.nextText());
                         }
                     }

@@ -8,8 +8,9 @@ public class Roadwork {
     private String description;
     private Date startDate;
     private Date endDate;
-    private String latitude;
-    private String longitude;
+    private double latitude;
+    private double longitude;
+    private String delay = "No Delay";
 
     public void setTitle(String input){
         this.title = input;
@@ -38,6 +39,21 @@ public class Roadwork {
         endDateMonth = endDateMonth.substring(0,3);
         String endDateYear = endDate.split(" ")[2];
 
+        //Roadworks delay information.
+        if(input.split("<br />").length == 3){
+            String temp = input.split("<br />")[2];
+            temp = temp.split(": ")[1];
+            if(temp.equalsIgnoreCase("No reported delay.") || temp.equalsIgnoreCase("No reported delay")){
+                delay = "No Delay";
+            }
+            //due to coronavirus there is no delays on any roads - assuming it says medium delay etc, can update later.
+            else if(temp.equalsIgnoreCase("Medium delay.") || temp.equalsIgnoreCase("Medium delay")){
+                delay = "Medium Delay";
+            }else if(temp.equalsIgnoreCase("High delay.") || temp.equalsIgnoreCase("High delay")){
+                delay = "High Delay";
+            }
+        }
+
         SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy");
         try {
             this.startDate = format.parse(startDateDay + " " + startDateMonth + " " + startDateYear);
@@ -48,7 +64,35 @@ public class Roadwork {
     }
 
     public void setLatLon(String input){
-        this.latitude = input.split(" ")[0];
-        this.longitude = input.split(" ")[1];
+        String tempLat = input.split(" ")[0];
+        String tempLon = input.split(" ")[1];
+        this.latitude = Double.parseDouble(tempLat);
+        this.longitude = Double.parseDouble(tempLon);
+    }
+
+    public String getTitle(){
+        return this.title;
+    }
+
+    public String getDescription(){
+        return this.description;
+    }
+
+    public double getLat(){
+        return this.latitude;
+    }
+
+    public double getLon(){
+        return this.longitude;
+    }
+
+    public String getDelay(){ return this.delay; }
+
+    public String getStartDate(){
+        return this.startDate.toString();
+    }
+
+    public String getEndDate(){
+        return this.endDate.toString();
     }
 }
