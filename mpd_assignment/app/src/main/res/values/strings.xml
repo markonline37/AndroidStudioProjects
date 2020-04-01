@@ -14,4 +14,17 @@
     <string name="view_planned_roadworks">View Planned Roadworks</string>
     <string name="back">Back\nTo Map</string>
     <string name="planned_roadworks">Planned\nRoadworks</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="or">Or</string>
+    <string name="place_name">Place name</string>
+    <string name="roadworks">Roadworks</string>
+    <string-array name="miles_array">
+        <item>1</item>
+        <item>5</item>
+        <item>10</item>
+        <item>20</item>
+        <item>50</item>
+        <item>100</item>
+    </string-array>
 </resources>

@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.DecimalFormat;
+
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private DataRepository dataRepository;
@@ -17,6 +19,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private boolean typeIncident = false;
     private boolean typeRoadworks = false;
     private boolean typePlannedRoadworks = false;
+
+    private static DecimalFormat df = new DecimalFormat("0.00");
 
 
     RecyclerViewAdapter(Context context, DataRepository dataRepository) {
@@ -62,55 +66,67 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if(typeIncident){
-            if(dataRepository.getIncidentArrayList().size() == 0){
+            if(dataRepository.getRecyclerIncident().size() == 0){
                 holder.title.setText("No Incidents to display");
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setVisibility(View.INVISIBLE);
+                holder.distance.setVisibility(View.INVISIBLE);
             }else{
-                Incident incident = dataRepository.getIncidentArrayList().get(position);
+                Incident incident = dataRepository.getRecyclerIncident().get(position);
                 holder.title.setText(incident.getTitle());
                 holder.description.setText(incident.getDescription());
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
                 holder.latLng.setText(incident.getLat()+ " "+incident.getLon());
                 holder.delay.setVisibility(View.INVISIBLE);
+                if(incident.getDistance() != 0){
+                    holder.distance.setText("Distance: "+df.format(incident.getDistance())+" Miles");
+                }
             }
         }else if(typeRoadworks){
-            if(dataRepository.getRoadworkArrayList().size() == 0){
+            if(dataRepository.getRecyclerRoadwork().size() == 0){
                 holder.title.setText("No Roadworks to display");
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setVisibility(View.INVISIBLE);
+                holder.distance.setVisibility(View.INVISIBLE);
             }else {
-                Roadwork roadwork = dataRepository.getRoadworkArrayList().get(position);
+                Roadwork roadwork = dataRepository.getRecyclerRoadwork().get(position);
                 holder.title.setText(roadwork.getTitle());
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setText(roadwork.getStartDate());
                 holder.endDate.setText(roadwork.getEndDate());
                 holder.latLng.setText(roadwork.getLat() + " " + roadwork.getLon());
                 holder.delay.setText(roadwork.getDelay());
+                if(roadwork.getDistance() != 0){
+                    holder.distance.setText("Distance: "+df.format(roadwork.getDistance())+" Miles");
+                }
             }
         }else if(typePlannedRoadworks){
-            if(dataRepository.getPlannedRoadworkArrayList().size() == 0){
+            if(dataRepository.getRecyclerPlanned().size() == 0){
                 holder.title.setText("No Planned Roadworks to display");
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setVisibility(View.INVISIBLE);
+                holder.distance.setVisibility(View.INVISIBLE);
             }else{
-                PlannedRoadwork plannedRoadwork = dataRepository.getPlannedRoadworkArrayList().get(position);
+                PlannedRoadwork plannedRoadwork = dataRepository.getRecyclerPlanned().get(position);
                 holder.title.setText(plannedRoadwork.getTitle());
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setText(plannedRoadwork.getStartDate());
                 holder.endDate.setText(plannedRoadwork.getEndDate());
                 holder.latLng.setText(plannedRoadwork.getLat()+ " " + plannedRoadwork.getLon());
                 holder.delay.setVisibility(View.INVISIBLE);
+                if(plannedRoadwork.getDistance() != 0){
+                    holder.distance.setText("Distance: "+df.format(plannedRoadwork.getDistance())+" Miles");
+                }
             }
         }
     }
@@ -121,21 +137,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public int getItemCount() {
         int size;
         if(typeIncident){
-            size = dataRepository.getIncidentArrayList().size();
+            size = dataRepository.getRecyclerIncident().size();
             if(size == 0){
                 return 1;
             }else{
                 return size;
             }
         }else if(typeRoadworks){
-            size = dataRepository.getRoadworkArrayList().size();
+            size = dataRepository.getRecyclerRoadwork().size();
             if(size == 0){
                 return 1;
             }else{
                 return size;
             }
         }else if(typePlannedRoadworks){
-            size = dataRepository.getPlannedRoadworkArrayList().size();
+            size = dataRepository.getRecyclerPlanned().size();
             if(size == 0){
                 return 1;
             }else{
@@ -154,6 +170,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         TextView endDate;
         TextView latLng;
         TextView delay;
+        TextView distance;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -163,6 +180,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             endDate = itemView.findViewById(R.id.rowEndDate);
             latLng = itemView.findViewById(R.id.rowLatLng);
             delay = itemView.findViewById(R.id.rowDelay);
+            distance = itemView.findViewById(R.id.rowDistance);
             itemView.setOnClickListener(this);
         }
 

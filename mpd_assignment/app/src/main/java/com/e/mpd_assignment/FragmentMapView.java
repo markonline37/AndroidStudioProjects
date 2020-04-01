@@ -11,12 +11,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +57,11 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     private boolean gpsEnabled = false;
     private boolean initialLoad = true;
 
+    private boolean resumeState = false;
+    private float stateZoom;
+    private LatLng stateLatLng;
+
+
     //not exact, can update later.
     private LatLngBounds Scotland = new LatLngBounds(new LatLng(54.39, -7.83), new LatLng(58.66, -0.67));
 
@@ -70,6 +71,12 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     Location location;
 
     private LatLng latLng;
+
+    private void saveState(){
+        this.resumeState = true;
+        this.stateZoom = map.getCameraPosition().zoom;
+        this.stateLatLng = map.getCameraPosition().target;
+    }
 
     public FragmentMapView(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
@@ -105,6 +112,9 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     public void redrawMap(boolean booleanReload ) {
+
+        System.out.println("map2: "+map);
+
         if(initialLoad){
             initialLoad = false;
             //map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
@@ -354,11 +364,9 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
         String title = temp.split(" - ")[0];
         int position = Integer.parseInt(temp.split(" - ")[1]);
 
+        saveState();
         callback.changeState(title, position);
 
-        // Return false to indicate that we have not consumed the event and that we wish
-        // for the default behavior to occur (which is for the camera to move such that the
-        // marker is centered and for the marker's info window to open, if it has one).
         return false;
     }
 
@@ -399,12 +407,18 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
         });
         map.setOnMarkerClickListener(this);
         redrawMap(true);
+
+        if(resumeState){
+            resumeState = false;
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(stateLatLng, stateZoom));
+        }
     }
 
     @Override
     public void onPause() {
         mMapView.onPause();
         super.onPause();
+        saveState();
     }
 
     @Override

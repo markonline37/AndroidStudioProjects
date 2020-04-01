@@ -10,6 +10,15 @@ public class PlannedRoadwork {
     private Date endDate;
     private double latitude;
     private double longitude;
+    private double distance = 0;
+
+    public void setDistance(double distance){
+        this.distance = distance;
+    }
+
+    public double getDistance(){
+        return this.distance;
+    }
 
     public void setTitle(String input){
         this.title = input;

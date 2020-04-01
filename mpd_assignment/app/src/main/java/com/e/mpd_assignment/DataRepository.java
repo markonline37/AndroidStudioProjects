@@ -15,6 +15,47 @@ public class DataRepository {
     private ArrayList<Roadwork> roadworkArrayList;
     private ArrayList<PlannedRoadwork> plannedRoadworkArrayList;
 
+    //recycler view keeps a separate array list because it can be updated by searches.
+    private ArrayList<Incident> recyclerIncident;
+    private ArrayList<Roadwork> recyclerRoadwork;
+    private ArrayList<PlannedRoadwork> recyclerPlanned;
+
+    public void resetRecyclerRoadwork(){
+        this.recyclerRoadwork = roadworkArrayList;
+    }
+
+    public void resetRecyclerIncident(){
+        this.recyclerIncident = incidentArrayList;
+    }
+
+    public void resetRecyclerPlanned(){
+        this.recyclerPlanned = plannedRoadworkArrayList;
+    }
+
+    public ArrayList<Roadwork> getRecyclerRoadwork(){
+        return this.recyclerRoadwork;
+    }
+
+    public ArrayList<Incident> getRecyclerIncident(){
+        return this.recyclerIncident;
+    }
+
+    public ArrayList<PlannedRoadwork> getRecyclerPlanned(){
+        return this.recyclerPlanned;
+    }
+
+    public void setRecyclerRoadwork(ArrayList<Roadwork> temp){
+        this.recyclerRoadwork = temp;
+    }
+
+    public void setRecyclerIncident(ArrayList<Incident> temp){
+        this.recyclerIncident = temp;
+    }
+
+    public void setRecyclerPlanned(ArrayList<PlannedRoadwork> temp){
+        this.recyclerPlanned = temp;
+    }
+
     private boolean followMe = false;
 
     public DataRepository(){
@@ -213,4 +254,6 @@ public class DataRepository {
         myEdit.putString("PlannedRoadworks", input);
         myEdit.commit();
     }
+
+
 }

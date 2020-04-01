@@ -6,6 +6,15 @@ public class Incident {
     private String description;
     private double latitude;
     private double longitude;
+    private double distance = 0;
+
+    public void setDistance(double distance){
+        this.distance = distance;
+    }
+
+    public double getDistance(){
+        return this.distance;
+    }
 
     public void setTitle(String input){
         this.title = input;

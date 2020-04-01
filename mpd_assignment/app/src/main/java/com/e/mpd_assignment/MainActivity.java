@@ -17,9 +17,7 @@ import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity implements FragmentLoadingScreen.FragmentListener,
                                                                 LoadResourcePeriodic.LoadResourcePeriodicListener,
-                                                                FragmentIncidents.FragmentIncidentsListener,
-                                                                FragmentRoadworks.FragmentRoadworksListener,
-                                                                FragmentPlannedRoadworks.FragmentPlannedRoadworksListener,
+                                                                FragmentList.FragmentListener,
                                                                 FragmentMapView.MapStateListener{
 
     private DataRepository dataRepository;
@@ -38,16 +36,16 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
     @Override
     public void changeState(String type, int position){
         if(type.equals("Incident")){
-            switchFragments(fragmentIncidents);
-            FragmentIncidents fragment = (FragmentIncidents) getSupportFragmentManager().findFragmentByTag("incident");
+            switchFragments(fragmentIncidents, "Incident");
+            FragmentList fragment = (FragmentList) getSupportFragmentManager().findFragmentByTag("incident");
             fragment.scrollTo(position);
         }else if(type.equals("Roadworks")){
-            switchFragments(fragmentRoadworks);
-            FragmentRoadworks fragment = (FragmentRoadworks) getSupportFragmentManager().findFragmentByTag("roadwork");
+            switchFragments(fragmentRoadworks, "Roadwork");
+            FragmentList fragment = (FragmentList) getSupportFragmentManager().findFragmentByTag("roadwork");
             fragment.scrollTo(position);
         }else if(type.equals("PlannedRoadworks")){
-            switchFragments(fragmentPlannedRoadworks);
-            FragmentPlannedRoadworks fragment = (FragmentPlannedRoadworks) getSupportFragmentManager().findFragmentByTag("plannedRoadwork");
+            switchFragments(fragmentPlannedRoadworks, "PlannedRoadwork");
+            FragmentList fragment = (FragmentList) getSupportFragmentManager().findFragmentByTag("plannedRoadwork");
             fragment.scrollTo(position);
         }
     }
@@ -63,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         dataRepository = new DataRepository();
         dataRepository.checkFirstLoad();
 
+        //create the navigation menu
         drawerLayout = findViewById(R.id.activity_main);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.Open, R.string.Close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
@@ -71,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
 
         navigationView = findViewById(R.id.nv);
         navigationView.setItemIconTintList(null);
+        //setup the navigation menu listener
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
                         setMenuItemColor(item, true);
                         dataRepository.setDefaultMapCheckboxViewIncident("checked");
                     }
-                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentById(R.id.fragment);
+                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
                     fragment.redrawMap(true);
                 }else if(id == R.id.mapRoadworks){
                     if(item.isChecked()){
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
                         setMenuItemColor(item, true);
                         dataRepository.setDefaultMapCheckboxViewRoadworks("checked");
                     }
-                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentById(R.id.fragment);
+                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
                     fragment.redrawMap(true);
                 }else if(id == R.id.mapPlannedRoadworks){
                     if(item.isChecked()){
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
                         setMenuItemColor(item, true);
                         dataRepository.setDefaultMapCheckboxViewPlannedRoadworks("checked");
                     }
-                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentById(R.id.fragment);
+                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
                     fragment.redrawMap(true);
                 }else if(id == R.id.mapFollowMe){
                     if(item.isChecked()){
@@ -129,19 +129,19 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
                         setMenuItemColor(item, true);
                         dataRepository.setFollowMe("checked");
                     }
-                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentById(R.id.fragment);
+                    FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
                     fragment.redrawMap(true);
                 }else if(id == R.id.buttonIncidents){
                     recyclerViewAdapter.setType("Incident");
-                    switchFragments(fragmentIncidents);
+                    switchFragments(fragmentIncidents, "Incident");
                     drawerLayout.closeDrawers();
                 }else if(id == R.id.buttonRoadworks){
                     recyclerViewAdapter.setType("Roadworks");
-                    switchFragments(fragmentRoadworks);
+                    switchFragments(fragmentRoadworks, "Roadwork");
                     drawerLayout.closeDrawers();
                 }else if(id == R.id.buttonPlannedRoadworks){
                     recyclerViewAdapter.setType("PlannedRoadworks");
-                    switchFragments(fragmentPlannedRoadworks);
+                    switchFragments(fragmentPlannedRoadworks, "PlannedRoadwork");
                     drawerLayout.closeDrawers();
                 }
 
@@ -149,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
             }
         });
 
+        //load and set the user preferences
         if(dataRepository.getDefaultMapCheckboxViewIncident().equalsIgnoreCase("checked")){
             MenuItem item = navigationView.getMenu().getItem(0);
             item.setChecked(true);
@@ -180,22 +181,28 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
             dataRepository.setFollowMe("unchecked");
         }
 
+        /*
+            create the fragments and recycler view.
+            FragmentList and RecyclerViewAdapter are shared between incidents, roadworks, plannedRoadworks to reduce code duplication
+            FragmentList sets the state at start, RecyclerView updates state with set methods
+        */
         recyclerViewAdapter = new RecyclerViewAdapter(this, dataRepository);
 
         fragmentLoadingScreen = new FragmentLoadingScreen(dataRepository);
 
         fragmentMapView = new FragmentMapView(dataRepository);
-        fragmentIncidents = new FragmentIncidents(dataRepository, recyclerViewAdapter);
-        fragmentRoadworks = new FragmentRoadworks(dataRepository, recyclerViewAdapter);
-        fragmentPlannedRoadworks = new FragmentPlannedRoadworks(dataRepository, recyclerViewAdapter);
+        fragmentIncidents = new FragmentList(dataRepository, recyclerViewAdapter, "Incident", this);
+        fragmentRoadworks = new FragmentList(dataRepository, recyclerViewAdapter, "Roadwork", this);
+        fragmentPlannedRoadworks = new FragmentList(dataRepository, recyclerViewAdapter, "PlannedRoadwork", this);
 
         //need to load the unused fragments into the backstacktrace so that they can be searched for later.
-        switchFragments(fragmentIncidents);
-        switchFragments(fragmentRoadworks);
-        switchFragments(fragmentPlannedRoadworks);
+        switchFragments(fragmentIncidents, "Incident");
+        switchFragments(fragmentRoadworks, "Roadwork");
+        switchFragments(fragmentPlannedRoadworks, "PlannedRoadwork");
         //then display the loading screen.
-        switchFragments(fragmentLoadingScreen);
-
+        switchFragments(fragmentLoadingScreen, "LoadingScreen");
+        //a callback is used to let MainActivity know loading is complete
+        //MainActivity switches fragment to map view and user can now interact
     }
 
     //adds/removes an underline to menu items to aid colourblind users.
@@ -225,23 +232,18 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         if(fragment instanceof FragmentLoadingScreen){
             FragmentLoadingScreen fragmentLoadingScreen = (FragmentLoadingScreen) fragment;
             fragmentLoadingScreen.setFragmentListener(this);
-        }else if(fragment instanceof  FragmentIncidents){
-            FragmentIncidents fragmentIncidents = (FragmentIncidents) fragment;
-            fragmentIncidents.setFragmentIncidentsListener(this);
-        }else if(fragment instanceof  FragmentRoadworks){
-            FragmentRoadworks fragmentRoadworks = (FragmentRoadworks) fragment;
-            fragmentRoadworks.setFragmentRoadworksListener(this);
-        }else if(fragment instanceof  FragmentPlannedRoadworks){
-            FragmentPlannedRoadworks fragmentPlannedRoadworks = (FragmentPlannedRoadworks) fragment;
-            fragmentPlannedRoadworks.setFragmentPlannedRoadworksListener(this);
         }else if(fragment instanceof FragmentMapView){
             FragmentMapView fragmentMapView = (FragmentMapView) fragment;
             fragmentMapView.setMapStateListener(this);
         }
     }
 
+    //callback method for when data has fully loaded, sets the recycler ArrayLists, changes to map view, and enables the navigation bar.
     public void loadingComplete(){
-        switchFragments(fragmentMapView);
+        dataRepository.resetRecyclerRoadwork();
+        dataRepository.resetRecyclerIncident();
+        dataRepository.resetRecyclerPlanned();
+        switchFragments(fragmentMapView, "Map");
         this.getSupportActionBar().show();
     }
 
@@ -251,29 +253,31 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
 
     @Override
     public void backButton(){
-        switchFragments(fragmentMapView);
-        FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
-        fragment.redrawMap(true);
+        switchFragments(fragmentMapView, "Map");
+        //every time the fragment with the map resumes it uses the OnMapReady function so don't need to redraw.
+        //FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
+        //fragment.redrawMap(true);
     }
 
     @Override
     public void dataUpdated(){
-        FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentById(R.id.fragment);
+        FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
         fragment.redrawMap(true);
     }
 
-    private void switchFragments(Fragment fragment){
+    //replaces the fragments, sets a tag and adds to back stack so that they (including inactive fragments) can be searched for.
+    private void switchFragments(Fragment fragment, String type){
         FragmentManager manager = getSupportFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        if(fragment instanceof FragmentLoadingScreen){
+        if(type.equalsIgnoreCase("LoadingScreen")){
             transaction.replace(R.id.fragment, fragment, "loadingScreen");
-        }else if(fragment instanceof  FragmentIncidents){
+        }else if(type.equalsIgnoreCase("Incident")){
             transaction.replace(R.id.fragment, fragment, "incident");
-        }else if(fragment instanceof  FragmentRoadworks){
+        }else if(type.equalsIgnoreCase("Roadwork")){
             transaction.replace(R.id.fragment, fragment, "roadwork");
-        }else if(fragment instanceof  FragmentPlannedRoadworks){
+        }else if(type.equalsIgnoreCase("PlannedRoadwork")){
             transaction.replace(R.id.fragment, fragment, "plannedRoadwork");
-        }else if(fragment instanceof FragmentMapView) {
+        }else if(type.equalsIgnoreCase("Map")) {
             transaction.replace(R.id.fragment, fragment, "mapView");
         }
         transaction.addToBackStack(null);
@@ -283,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
     @Override
     protected void onResume(){
         super.onResume();
+        //resume the periodic checking of different data
         loadResourcePeriodic = new LoadResourcePeriodic(dataRepository, this);
         loadResourcePeriodic.execute();
     }
@@ -290,6 +295,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
     @Override
     protected void onPause(){
         super.onPause();
+        //if the app is paused stop the periodic checking for different data
         loadResourcePeriodic.cancel();
     }
 }
