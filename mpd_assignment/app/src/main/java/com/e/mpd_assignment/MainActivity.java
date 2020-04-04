@@ -18,24 +18,34 @@ import com.google.android.material.navigation.NavigationView;
 public class MainActivity extends AppCompatActivity implements FragmentLoadingScreen.FragmentListener,
                                                                 LoadResourcePeriodic.LoadResourcePeriodicListener,
                                                                 FragmentList.FragmentListener,
-                                                                FragmentMapView.MapStateListener{
+                                                                FragmentMapView.MapStateListener,
+                                                                FragmentJourney.JourneyListener{
 
     private DataRepository dataRepository;
+    private JourneyRepository journeyRepository;
     private Fragment fragmentLoadingScreen;
     private Fragment fragmentMapView;
     private Fragment fragmentIncidents;
     private Fragment fragmentRoadworks;
     private Fragment fragmentPlannedRoadworks;
+    private Fragment fragmentJourney;
     private LoadResourcePeriodic loadResourcePeriodic;
     private RecyclerViewAdapter recyclerViewAdapter;
+    private RecyclerViewSavedJourney recyclerViewSavedJourney;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
 
     @Override
+    public void changeTitle(String input){
+        setTitle(input);
+    }
+
+    @Override
     public void changeState(String type, int position){
         if(type.equals("Incident")){
+            dataRepository.resetRecyclerIncident();
             switchFragments(fragmentIncidents, "Incident");
             FragmentList fragment = (FragmentList) getSupportFragmentManager().findFragmentByTag("incident");
             fragment.scrollTo(position);
@@ -58,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
 
         getSupportActionBar().hide();
 
-        dataRepository = new DataRepository();
+        journeyRepository = new JourneyRepository();
+
+        dataRepository = new DataRepository(journeyRepository);
         dataRepository.checkFirstLoad();
 
         //create the navigation menu
@@ -75,7 +87,10 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
-                if(id == R.id.mapIncidents){
+                if(id == R.id.buttonMapView){
+                    switchFragments(fragmentMapView, "Map");
+                    drawerLayout.closeDrawers();
+                } else if(id == R.id.mapIncidents){
                     if(item.isChecked()){
                         item.setChecked(false);
                         item.setIcon(R.drawable.incidenticongray);
@@ -143,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
                     recyclerViewAdapter.setType("PlannedRoadworks");
                     switchFragments(fragmentPlannedRoadworks, "PlannedRoadwork");
                     drawerLayout.closeDrawers();
+                }else if(id == R.id.buttonJourneyPlanner){
+                    switchFragments(fragmentJourney, "Journey");
+                    drawerLayout.closeDrawers();
                 }
 
                 return false;
@@ -151,33 +169,33 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
 
         //load and set the user preferences
         if(dataRepository.getDefaultMapCheckboxViewIncident().equalsIgnoreCase("checked")){
-            MenuItem item = navigationView.getMenu().getItem(0);
-            item.setChecked(true);
-            setMenuItemColor(item, true);
-        }else{
-            navigationView.getMenu().getItem(0).setIcon(R.drawable.incidenticongray);
-        }
-        if(dataRepository.getDefaultMapCheckboxViewRoadworks().equalsIgnoreCase("checked")){
             MenuItem item = navigationView.getMenu().getItem(1);
             item.setChecked(true);
             setMenuItemColor(item, true);
         }else{
-            navigationView.getMenu().getItem(1).setIcon(R.drawable.roadworksicongray);
+            navigationView.getMenu().getItem(1).setIcon(R.drawable.incidenticongray);
         }
-        if(dataRepository.getDefaultMapCheckboxViewPlannedRoadworks().equalsIgnoreCase("checked")){
-            MenuItem item =  navigationView.getMenu().getItem(2);
+        if(dataRepository.getDefaultMapCheckboxViewRoadworks().equalsIgnoreCase("checked")){
+            MenuItem item = navigationView.getMenu().getItem(2);
             item.setChecked(true);
             setMenuItemColor(item, true);
         }else{
-            navigationView.getMenu().getItem(2).setIcon(R.drawable.plannedroadworksicongray);
+            navigationView.getMenu().getItem(2).setIcon(R.drawable.roadworksicongray);
+        }
+        if(dataRepository.getDefaultMapCheckboxViewPlannedRoadworks().equalsIgnoreCase("checked")){
+            MenuItem item =  navigationView.getMenu().getItem(3);
+            item.setChecked(true);
+            setMenuItemColor(item, true);
+        }else{
+            navigationView.getMenu().getItem(3).setIcon(R.drawable.plannedroadworksicongray);
         }
         if(dataRepository.getDefaultMapCheckboxViewFollowMe().equalsIgnoreCase("checked")){
-            MenuItem item = navigationView.getMenu().getItem(3);
+            MenuItem item = navigationView.getMenu().getItem(4);
             item.setChecked(true);
             dataRepository.setFollowMe("checked");
             setMenuItemColor(item, true);
         }else{
-            navigationView.getMenu().getItem(3).setIcon(R.drawable.mymarkergray);
+            navigationView.getMenu().getItem(4).setIcon(R.drawable.mymarkergray);
             dataRepository.setFollowMe("unchecked");
         }
 
@@ -187,10 +205,14 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
             FragmentList sets the state at start, RecyclerView updates state with set methods
         */
         recyclerViewAdapter = new RecyclerViewAdapter(this, dataRepository);
+        recyclerViewSavedJourney = new RecyclerViewSavedJourney(this, journeyRepository);
 
         fragmentLoadingScreen = new FragmentLoadingScreen(dataRepository);
 
-        fragmentMapView = new FragmentMapView(dataRepository);
+        fragmentJourney = new FragmentJourney(dataRepository, recyclerViewSavedJourney, this, journeyRepository);
+
+
+        fragmentMapView = new FragmentMapView(dataRepository, loadResourcePeriodic, this);
         fragmentIncidents = new FragmentList(dataRepository, recyclerViewAdapter, "Incident", this);
         fragmentRoadworks = new FragmentList(dataRepository, recyclerViewAdapter, "Roadwork", this);
         fragmentPlannedRoadworks = new FragmentList(dataRepository, recyclerViewAdapter, "PlannedRoadwork", this);
@@ -199,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         switchFragments(fragmentIncidents, "Incident");
         switchFragments(fragmentRoadworks, "Roadwork");
         switchFragments(fragmentPlannedRoadworks, "PlannedRoadwork");
+        switchFragments(fragmentJourney, "journey");
         //then display the loading screen.
         switchFragments(fragmentLoadingScreen, "LoadingScreen");
         //a callback is used to let MainActivity know loading is complete
@@ -235,6 +258,9 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         }else if(fragment instanceof FragmentMapView){
             FragmentMapView fragmentMapView = (FragmentMapView) fragment;
             fragmentMapView.setMapStateListener(this);
+        }else if(fragment instanceof FragmentJourney){
+            FragmentJourney fragmentJourney = (FragmentJourney) fragment;
+            fragmentJourney.setJourneyListener(this);
         }
     }
 
@@ -243,6 +269,11 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         dataRepository.resetRecyclerRoadwork();
         dataRepository.resetRecyclerIncident();
         dataRepository.resetRecyclerPlanned();
+        journeyRepository = dataRepository.loadJourneys();
+        recyclerViewSavedJourney.updateRepo(journeyRepository);
+        FragmentJourney fragment = (FragmentJourney) getSupportFragmentManager().findFragmentByTag("journey");
+        fragment.updateRepo(this.journeyRepository);
+        recyclerViewSavedJourney.notifyDataSetChanged();
         switchFragments(fragmentMapView, "Map");
         this.getSupportActionBar().show();
     }
@@ -262,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
     @Override
     public void dataUpdated(){
         FragmentMapView fragment = (FragmentMapView) getSupportFragmentManager().findFragmentByTag("mapView");
-        fragment.redrawMap(true);
+        fragment.redrawMap(false);
     }
 
     //replaces the fragments, sets a tag and adds to back stack so that they (including inactive fragments) can be searched for.
@@ -273,12 +304,19 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
             transaction.replace(R.id.fragment, fragment, "loadingScreen");
         }else if(type.equalsIgnoreCase("Incident")){
             transaction.replace(R.id.fragment, fragment, "incident");
+            setTitle("Incidents");
         }else if(type.equalsIgnoreCase("Roadwork")){
             transaction.replace(R.id.fragment, fragment, "roadwork");
+            setTitle("Roadworks");
         }else if(type.equalsIgnoreCase("PlannedRoadwork")){
             transaction.replace(R.id.fragment, fragment, "plannedRoadwork");
+            setTitle("Planned Roadworks");
         }else if(type.equalsIgnoreCase("Map")) {
             transaction.replace(R.id.fragment, fragment, "mapView");
+            setTitle("Map");
+        }else if(type.equalsIgnoreCase("Journey")){
+            transaction.replace(R.id.fragment, fragment, "journey");
+            setTitle("Journey Planner");
         }
         transaction.addToBackStack(null);
         transaction.commit();
@@ -288,14 +326,18 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
     protected void onResume(){
         super.onResume();
         //resume the periodic checking of different data
-        loadResourcePeriodic = new LoadResourcePeriodic(dataRepository, this);
-        loadResourcePeriodic.execute();
+
+
     }
 
     @Override
     protected void onPause(){
         super.onPause();
         //if the app is paused stop the periodic checking for different data
-        loadResourcePeriodic.cancel();
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
     }
 }

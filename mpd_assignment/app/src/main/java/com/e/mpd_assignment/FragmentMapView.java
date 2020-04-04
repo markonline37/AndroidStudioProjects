@@ -61,6 +61,8 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     private float stateZoom;
     private LatLng stateLatLng;
 
+    private LoadResourcePeriodic loadResourcePeriodic;
+
 
     //not exact, can update later.
     private LatLngBounds Scotland = new LatLngBounds(new LatLng(54.39, -7.83), new LatLng(58.66, -0.67));
@@ -72,14 +74,18 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
 
     private LatLng latLng;
 
+    private LoadResourcePeriodic.LoadResourcePeriodicListener tempCallback;
+
     private void saveState(){
         this.resumeState = true;
         this.stateZoom = map.getCameraPosition().zoom;
         this.stateLatLng = map.getCameraPosition().target;
     }
 
-    public FragmentMapView(DataRepository dataRepository) {
+    public FragmentMapView(DataRepository dataRepository, LoadResourcePeriodic loadResourcePeriodic, LoadResourcePeriodic.LoadResourcePeriodicListener callback) {
+        this.tempCallback = callback;
         this.dataRepository = dataRepository;
+        this.loadResourcePeriodic = loadResourcePeriodic;
     }
 
     @Override
@@ -112,8 +118,6 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     public void redrawMap(boolean booleanReload ) {
-
-        System.out.println("map2: "+map);
 
         if(initialLoad){
             initialLoad = false;
@@ -332,6 +336,8 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        loadResourcePeriodic = new LoadResourcePeriodic(dataRepository, tempCallback);
+        loadResourcePeriodic.execute();
     }
 
     @Override
@@ -419,6 +425,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
         mMapView.onPause();
         super.onPause();
         saveState();
+        loadResourcePeriodic.cancel(true);
     }
 
     @Override

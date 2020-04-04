@@ -20,9 +20,11 @@ import android.widget.TextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -31,8 +33,10 @@ import java.util.Locale;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
+import com.google.android.gms.maps.GoogleMap;
+
 //used by incident, roadwork, and planned roadwork lists to display & search the appropriate data.
-public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemClickListener, View.OnClickListener, View.OnTouchListener {
+public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemClickListener, View.OnClickListener, View.OnTouchListener{
 
     private View view;
     private FragmentListener callback;
@@ -64,6 +68,9 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
     private boolean typeIncident = false;
     private boolean typeRoadwork = false;
     private boolean typePlannedRoadwork = false;
+
+    GoogleMap googleMap;
+    MapView mapView;
 
     //FragmentList is used by incident, roadwork, and planned roadwork (each have their own) to display the list of data so sets the state at creation.
     public FragmentList(DataRepository dataRepository, RecyclerViewAdapter recyclerViewAdapter, String type, FragmentListener callback){
@@ -99,6 +106,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
         recyclerView.setLayoutManager(new LinearLayoutManager(GlobalContext.getContext()));
         recyclerViewAdapter.setClickListener(this);
         recyclerView.setAdapter(recyclerViewAdapter);
+        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
 
         //all the buttons and fields used in the list view
         backButton = view.findViewById(R.id.backButton);
@@ -191,7 +199,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
             //reset & reload the items in list
             buttonReset.setVisibility(View.INVISIBLE);
             if(typeIncident){
-                dataRepository.resetRecyclerPlanned();
+                dataRepository.resetRecyclerIncident();
             }else if(typeRoadwork){
                 dataRepository.resetRecyclerRoadwork();
             }else if(typePlannedRoadwork){
@@ -202,6 +210,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                 //hide the search fields
                 toggleSearch(false);
             }
+            recyclerView.scrollToPosition(0);
         }else if(v == buttonLatLong){
             //search for lat/lng based on selected distance
             String lat = editLat.getText().toString();
@@ -266,6 +275,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                             recyclerViewAdapter.notifyDataSetChanged();
                             buttonReset.setVisibility(View.VISIBLE);
                             resetSearch();
+                            recyclerView.scrollToPosition(0);
                         }
                     }else{
                         textErrorLatLong.setText("Need to enter both fields");
@@ -334,6 +344,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                     recyclerViewAdapter.notifyDataSetChanged();
                     buttonReset.setVisibility(View.VISIBLE);
                     resetSearch();
+                    recyclerView.scrollToPosition(0);
                 }else{
                     textErrorPlace.setText("No address found for: "+place);
                 }
@@ -420,24 +431,24 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
 
     @Override
     public void onItemClick(View view, int position) {
-        //System.out.println("//////////Callback roadworks: "+recyclerViewAdapter.getType() + " on element: "+position);
+        //can implement additional functionality when an incident etc is clicked.
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        if(shouldScroll){
-            recyclerView.scrollToPosition(scrollValue);
-            shouldScroll = false;
-        }else{
-            recyclerView.scrollToPosition(0);
-        }
         if(typeIncident){
             recyclerViewAdapter.setType("Incidents");
         }else if(typeRoadwork){
             recyclerViewAdapter.setType("Roadworks");
         }else if(typePlannedRoadwork){
             recyclerViewAdapter.setType("PlannedRoadworks");
+        }
+        if(shouldScroll){
+            recyclerView.scrollToPosition(scrollValue);
+            shouldScroll = false;
+        }else{
+            recyclerView.scrollToPosition(0);
         }
     }
 
@@ -450,7 +461,6 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                 Address address = addressList.get(0);
                 if (address != null) {
                     latLng = new LatLng(address.getLatitude(), address.getLongitude());
-                    System.out.println(latLng.toString());
                     return latLng;
                 }
             }

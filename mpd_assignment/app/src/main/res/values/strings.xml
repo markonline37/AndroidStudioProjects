@@ -19,6 +19,9 @@
     <string name="or">Or</string>
     <string name="place_name">Place name</string>
     <string name="roadworks">Roadworks</string>
+    <string name="view_map">View Map</string>
+    <string name="journey_planner">Journey Planner</string>
+    <string name="API_key">AIzaSyCc8iFpI-QMaF328yHb4lJETzeRc7eFSps</string>
     <string-array name="miles_array">
         <item>1</item>
         <item>5</item>

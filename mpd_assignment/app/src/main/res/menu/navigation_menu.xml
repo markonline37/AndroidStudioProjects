@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/buttonMapView"
+        android:icon="@drawable/mapiconsmall"
+        android:title="@string/view_map" />
+
+    <item
         android:id="@+id/mapIncidents"
         android:icon="@drawable/navincidenticon"
         android:title="@string/map_show_incidents" />
@@ -35,4 +40,9 @@
         android:id="@+id/buttonPlannedRoadworks"
         android:icon="@drawable/plannedroadworksicon"
         android:title="@string/view_planned_roadworks"/>
+
+    <item
+        android:id="@+id/buttonJourneyPlanner"
+        android:icon="@drawable/journeyicon"
+        android:title="@string/journey_planner"/>
 </menu>
