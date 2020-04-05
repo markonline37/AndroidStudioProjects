@@ -10,6 +10,7 @@
         android:allowBackup="true"
         android:icon="@drawable/mainicon"
         android:label="Navigation"
+        android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">

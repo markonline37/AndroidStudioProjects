@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+//RecyclerView which contains the saved journeys in the journeys homescreen
 public class RecyclerViewSavedJourney extends RecyclerView.Adapter<RecyclerViewSavedJourney.ViewHolder>{
 
     private LayoutInflater mInflater;
@@ -17,31 +18,30 @@ public class RecyclerViewSavedJourney extends RecyclerView.Adapter<RecyclerViewS
     private ItemClickListener2 mClickListener2;
     private JourneyRepository journeyRepository;
 
-    private View view;
-
     RecyclerViewSavedJourney(Context context, JourneyRepository journeyRepository) {
         //cant use GlobalContext.getContext() here.
         this.mInflater = LayoutInflater.from(context);
         this.journeyRepository = journeyRepository;
     }
 
-    public void updateRepo(JourneyRepository jr){
+    //need to update the repo after it's loaded from serialized in dataRepository.
+    void updateRepo(JourneyRepository jr){
         this.journeyRepository = jr;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        view = mInflater.inflate(R.layout.recycler_row_saved_journey, parent, false);
+        View view = mInflater.inflate(R.layout.recycler_row_saved_journey, parent, false);
 
         return new ViewHolder(view);
     }
 
     // binds the data to the TextView in each row
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if(this.journeyRepository.getJourneyArrayList().size() == 0){
-            holder.name.setText("No saved journeys to display");
+            holder.name.setText(R.string.no_saved_journey);
             holder.icon.setVisibility(View.INVISIBLE);
         }else{
             holder.name.setText(journeyRepository.getJourneyArrayList().get(position).getName());
@@ -50,7 +50,7 @@ public class RecyclerViewSavedJourney extends RecyclerView.Adapter<RecyclerViewS
     }
 
     // total number of rows
-    //return 1 if empty to display the "No Incident (etc) to display"
+    //return 1 if empty to display the "No saved journey"
     @Override
     public int getItemCount() {
         int size = journeyRepository.getJourneyArrayList().size();
@@ -60,7 +60,6 @@ public class RecyclerViewSavedJourney extends RecyclerView.Adapter<RecyclerViewS
             return size;
         }
     }
-
 
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{

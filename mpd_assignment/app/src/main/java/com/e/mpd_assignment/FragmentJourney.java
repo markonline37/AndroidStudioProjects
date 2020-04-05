@@ -1,5 +1,6 @@
 package com.e.mpd_assignment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -19,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
@@ -44,7 +46,15 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
+/*
+    Handles the entire journey menu, switches 'state' based on what the user is doing;
+    View default (journey homescreen, can load/delete saved journeys)
+        -> Plan a journey
+            -> View planned journey
+                -> Save planned journey
+ */
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
 public class FragmentJourney extends Fragment implements View.OnClickListener,
@@ -59,9 +69,7 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
     private Button buttonCreateJourney;
 
     private RecyclerViewSavedJourney recyclerViewSavedJourney;
-    private RecyclerView recyclerView;
     private RecyclerViewJourneySteps recyclerViewJourneySteps;
-    private RecyclerView recyclerJourney;
     private DataRepository dataRepository;
 
     private EditText startLocation;
@@ -75,8 +83,6 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
     private Polyline polyline;
 
     private GoogleMap map;
-    private MapView mapView;
-    private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
     private double journeyStartLat;
     private double journeyStartLng;
@@ -96,17 +102,19 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
 
     private JourneyRepository journeyRepository;
 
-    public FragmentJourney(DataRepository dataRepository, RecyclerViewSavedJourney recyclerViewSavedJourney, Context context, JourneyRepository journeyRepository){
+    FragmentJourney(DataRepository dataRepository, RecyclerViewSavedJourney recyclerViewSavedJourney, Context context, JourneyRepository journeyRepository){
         this.journeyRepository = journeyRepository;
         this.dataRepository = dataRepository;
         this.recyclerViewSavedJourney = recyclerViewSavedJourney;
         this.context = context;
     }
 
-    public void updateRepo(JourneyRepository jr){
+    //Because the dataRepository loads the serialized journeyRepository, reload it to the loaded version.
+    void updateRepo(JourneyRepository jr){
         this.journeyRepository = jr;
     }
 
+    //asynctask callback, once the data is gathered from maps and parsed, draws routes on screen.
     @Override
     public void dataLoaded(List<List<HashMap<String, String>>> result){
 
@@ -116,13 +124,14 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         //since data is now loaded, we can save journey.
         buttonSaveJourney.setVisibility(View.VISIBLE);
 
+        //use a latlngbounds builder which can be used to automatically position the map based on input LatLng's
         LatLngBounds.Builder builder = LatLngBounds.builder();
 
         ArrayList<Incident> incidents = dataRepository.getIncidentArrayList();
         ArrayList<Roadwork> roadworks = dataRepository.getRoadworkArrayList();
         ArrayList<PlannedRoadwork> planned = dataRepository.getPlannedRoadworkArrayList();
 
-        ArrayList<LatLng> points = null;
+        ArrayList<LatLng> points;
         PolylineOptions lineOptions = null;
 
         long picked;
@@ -141,7 +150,7 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
 
         // Traversing through all the routes
         for(int i=0;i<result.size();i++){
-            points = new ArrayList<LatLng>();
+            points = new ArrayList<>();
             lineOptions = new PolylineOptions();
 
             // Fetching i-th route
@@ -151,14 +160,15 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
             for(int j=0;j<path.size();j++){
                 HashMap<String,String> point = path.get(j);
 
-                double lat = Double.parseDouble(point.get("lat"));
-                double lng = Double.parseDouble(point.get("lng"));
+                double lat = Double.parseDouble(Objects.requireNonNull(point.get("lat")));
+                double lng = Double.parseDouble(Objects.requireNonNull(point.get("lng")));
 
                 LatLng position = new LatLng(lat, lng);
 
                 builder.include(position);
 
-
+                //These 3 loops check to see if the route passes within 10meters of a roadwork. if it does it gets added to the journey steps and drawn on map
+                //quite CPU intensive, can update if the app is to be published to app store.
                 Date today = new Date();
                 if(today.getYear() == datePicker.getYear() && today.getMonth() == datePicker.getMonth() && today.getDay() == datePicker.getDayOfMonth()){
                     for(int k = 0, l = incidents.size(); k<l; k++){
@@ -208,17 +218,18 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
             polyline = map.addPolyline(lineOptions);
         }
 
+        //finish the builder
         LatLngBounds bounds = builder.build();
-
+        //move the camera to builder bounds
         map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+        //tell the recycler to update
         recyclerViewJourneySteps.notifyDataSetChanged();
     }
 
+    //calculate distance within 10m, and then check if the departure date is within the roadworks range.
     private boolean checkPosition(double lat1, double lng1, double lat2, double lng2, long picked, long start, long end){
         if(calculateDistance(lat1, lng1, lat2, lng2)){
-            if(picked >= start && picked <= end){
-                return true;
-            }
+            return picked >= start && picked <= end;
         }
         return false;
     }
@@ -232,17 +243,14 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         dist = dist*180/Math.PI;
         dist = dist * 60 * 1.1515;
         //if within 10meters
-        if(dist < 0.01){
-            return true;
-        }
-        return false;
+        return dist < 0.01;
     }
 
     private double dtor(double deg){
         return (deg * Math.PI/180);
     }
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         this.inflater = inflater;
 
@@ -269,6 +277,7 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         endLocation = view.findViewById(R.id.editEndLocation);
         datePicker = view.findViewById(R.id.datePicker);
         errorText = view.findViewById(R.id.planJourneyError);
+        datePicker.setDescendantFocusability(DatePicker.FOCUS_BLOCK_DESCENDANTS);
 
         Date date = new Date();
         long now = date.getTime();
@@ -279,25 +288,28 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         long millisecond = 1000;
         //have to avoid an overflow expression.
         long future = now+year*hour*minute*second*millisecond;
+        //datepicker uses milliseconds as time, so set the min to now, and max to 1 year from now.
         datePicker.setMinDate(now);
         datePicker.setMaxDate(future);
 
         parentGroup = view.findViewById(R.id.parentGroup);
 
-        recyclerView = view.findViewById(R.id.recyclerSavedJourney);
+        //inflate the recycler(s) with the correct views and attach the correct adapter(s)
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerSavedJourney);
         recyclerView.setLayoutManager(new LinearLayoutManager(GlobalContext.getContext()));
         recyclerViewSavedJourney.setClickListener(this);
         recyclerViewSavedJourney.setClickListener2(this);
         recyclerView.setAdapter(recyclerViewSavedJourney);
 
-        recyclerJourney = view.findViewById(R.id.recyclerResult);
+        RecyclerView recyclerJourney = view.findViewById(R.id.recyclerResult);
         recyclerJourney.setLayoutManager(new LinearLayoutManager(GlobalContext.getContext()));
         recyclerViewJourneySteps = new RecyclerViewJourneySteps(this.context, this.dataRepository);
         recyclerJourney.setAdapter(recyclerViewJourneySteps);
 
+        //load the journey homescreen 'state'
         changeState("default");
 
-        mapView = view.findViewById(R.id.mapLiteJourney);
+        MapView mapView = view.findViewById(R.id.mapLiteJourney);
         if(mapView != null){
             mapView.onCreate(null);
             mapView.getMapAsync(this);
@@ -311,6 +323,8 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
     public void onItemClick2(int position) {
         changeState("result");
         Journey journey = journeyRepository.getJourneyArrayList().get(position);
+        //set the class variables to be used in the view result state.
+        //this way the data is saved locally instead of having to get it from the asynctask each time.
         loadJourney = true;
         loadCalendar = journey.getTravelDate();
         journeyStartLocation = journey.getStartLocation();
@@ -320,10 +334,11 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         journeyEndLat = journey.getEndLat();
         journeyEndLng = journey.getEndLng();
         journeyResult = journey.getJourneyResult();
+        //pass the saved local data to the dataLoaded method - bypassing the asynctask
         this.dataLoaded(journey.getJourneyResult());
     }
 
-    //trashcan Icon
+    //trashcan Icon (delete saved journey)
     @Override
     public void onItemClick(int position) {
         dataRepository.deleteJourney(position);
@@ -345,19 +360,32 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         }else if(v == buttonCreateJourney){
             planJourney();
         }else if(v == parentGroup){
+            //click off editable to hide keyboard
             hideKeyBoard();
         }
     }
 
+    //popup to confirm save journey and change the name.
+    //names do not have to be unique.
     private void showPopUp(){
-        final View popupView = inflater.inflate(R.layout.popup_save_journey, null);
+        final View popupView;
+        int orientation = this.getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //portrait
+            popupView = inflater.inflate(R.layout.popup_save_journey, null);
+        } else {
+            //landscape
+            popupView = inflater.inflate(R.layout.popup_save_journey_landscape, null);
+        }
+
         int width = LinearLayout.LayoutParams.MATCH_PARENT;
         int height = LinearLayout.LayoutParams.MATCH_PARENT;
-        boolean focusable = true;
-        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, true);
         popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         EditText temp = popupView.findViewById(R.id.editText);
-        temp.setText(journeyStartLocation + " to "+journeyEndLocation);
+        //load a prepared name into the name for convience.
+        String temp5 = journeyStartLocation + " to "+journeyEndLocation;
+        temp.setText(temp5);
         final Button saveButton = popupView.findViewById(R.id.buttonJourneySave);
         saveButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -379,14 +407,17 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
             }
         });
         popupView.setOnTouchListener(new View.OnTouchListener(){
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                //if click anywhere apart from the saveButton or name edittext close the popup.
                 popupWindow.dismiss();
                 return true;
             }
         });
     }
 
+    //save the journey and update the saved journey recycler
     private void saveJourney(String name){
         Journey journey = new Journey(name, journeyStartLat, journeyStartLng, journeyEndLat, journeyEndLng, journeyDate, journeyStartLocation, journeyEndLocation, journeyResult);
         dataRepository.saveJourney(journey);
@@ -394,32 +425,35 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
 
     }
 
-    public void planJourney(){
+    //checks fields are completed properly, displays errors if not.
+    private void planJourney(){
         boolean error = false;
         if(startLocation.getText().toString().length() == 0 && endLocation.getText().toString().length() == 0){
             error = true;
-            errorText.setText("Both fields must be completed");
+            errorText.setText(R.string.both_must);
         }else if(startLocation.getText().toString().length() == 0){
             error = true;
-            errorText.setText("Start location must be completed");
+            errorText.setText(R.string.start_must);
         }else if(endLocation.getText().toString().length() == 0){
             error = true;
-            errorText.setText("End location must be completed");
+            errorText.setText(R.string.end_must);
         }
         if(!error){
+            //geocoder, get LatLng from location
             LatLng start = getLatLngFromAddress(startLocation.getText().toString());
             LatLng end = getLatLngFromAddress(endLocation.getText().toString());
             if(start == null && end == null){
                 error = true;
-                errorText.setText("Start and End Location now found");
+                errorText.setText(R.string.niether_found);
             }else if(start == null){
                 error = true;
-                errorText.setText("Start location not found");
+                errorText.setText(R.string.start_not_found);
             }else if(end == null){
                 error = true;
-                errorText.setText("End location not found");
+                errorText.setText(R.string.end_not_found);
             }
             if(!error){
+                //if no errors set the class variables and change state to view results
                 journeyStartLat = start.latitude;
                 journeyStartLng = start.longitude;
                 journeyEndLat = end.latitude;
@@ -428,14 +462,19 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
                 journeyEndLocation = endLocation.getText().toString();
                 resetFields();
                 changeState("result");
+                //asynctask gets the results and loads them into dataLoaded() (above) using callback
                 LoadResourceJSON task = new LoadResourceJSON();
                 task.onPreExecute(this, start, end);
                 task.execute();
             }
         }
+        if(error){
+            errorText.setVisibility(View.VISIBLE);
+        }
     }
 
-    public LatLng getLatLngFromAddress(String input){
+    //geocoder to get LatLng from location name
+    private LatLng getLatLngFromAddress(String input){
         Geocoder geocoder = new Geocoder(GlobalContext.getContext(), Locale.getDefault());
         LatLng latLng;
         try{
@@ -453,8 +492,10 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         return null;
     }
 
+    //reset the plan journey fields
     private void resetFields(){
         errorText.setText("");
+        errorText.setVisibility(View.INVISIBLE);
         startLocation.setText("");
         endLocation.setText("");
         Calendar now = Calendar.getInstance();
@@ -534,7 +575,7 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         constraintset.connect(R.id.planJourney, ConstraintSet.TOP, R.id.parentGroup, ConstraintSet.BOTTOM);
         constraintset.applyTo(parentGroup);
 
-        view.findViewById(R.id.planJourney).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.planJourney).setVisibility(View.INVISIBLE);
     }
 
     //modify the constraint set and visibility to change 'state'
@@ -571,18 +612,26 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
         void changeTitle(String title);
     }
 
-    public void setJourneyListener(JourneyListener callback){
+    void setJourneyListener(JourneyListener callback){
         this.callback = callback;
     }
 
     @Override
     public void onMapReady(GoogleMap map){
-        MapsInitializer.initialize(getActivity());
+        MapsInitializer.initialize(Objects.requireNonNull(getActivity()));
         this.map = map;
     }
 
     private void hideKeyBoard(){
         InputMethodManager imm = (InputMethodManager)GlobalContext.getContext().getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        Objects.requireNonNull(imm).hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString("journeyState", "test");
+
+        // call superclass to save any view hierarchy
+        super.onSaveInstanceState(outState);
     }
 }

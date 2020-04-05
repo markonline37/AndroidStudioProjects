@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -33,11 +34,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.LocationListener;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener, LocationListener  {
 
     private DataRepository dataRepository;
-    private View view;
 
     private MapView mMapView;
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
@@ -68,9 +69,6 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     private LatLngBounds Scotland = new LatLngBounds(new LatLng(54.39, -7.83), new LatLng(58.66, -0.67));
 
     private LocationManager lm;
-    private int MAP_UPDATE_TIME = 5000;
-
-    Location location;
 
     private LatLng latLng;
 
@@ -82,10 +80,9 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
         this.stateLatLng = map.getCameraPosition().target;
     }
 
-    public FragmentMapView(DataRepository dataRepository, LoadResourcePeriodic loadResourcePeriodic, LoadResourcePeriodic.LoadResourcePeriodicListener callback) {
+    FragmentMapView(DataRepository dataRepository, LoadResourcePeriodic.LoadResourcePeriodicListener callback) {
         this.tempCallback = callback;
         this.dataRepository = dataRepository;
-        this.loadResourcePeriodic = loadResourcePeriodic;
     }
 
     @Override
@@ -94,7 +91,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     private void checkGPSPermissions(){
-        if((ContextCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
+        if((ContextCompat.checkSelfPermission(Objects.requireNonNull(this.getActivity()), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
             ActivityCompat.requestPermissions(this.getActivity(), new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, 100);
         }else{
             gpsEnabled = true;
@@ -102,7 +99,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == 100) {
@@ -117,7 +114,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
         redrawMap(false);
     }
 
-    public void redrawMap(boolean booleanReload ) {
+    void redrawMap(boolean booleanReload) {
 
         if(initialLoad){
             initialLoad = false;
@@ -132,11 +129,11 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
                 for(int i = 0, j = incidentMarkers.size(); i<j; i++){
                     incidentMarkers.get(i).remove();
                 }
-                Incident incident = null;
-                double tempLat = 0;
-                double tempLon = 0;
-                String tempTitle = "";
-                String tempDescription = "";
+                Incident incident;
+                double tempLat;
+                double tempLon;
+                String tempTitle;
+                String tempDescription;
                 for(int i = 0, j = incidentArrayList.size(); i<j; i++){
                     incident = incidentArrayList.get(i);
                     tempTitle = incident.getTitle();
@@ -163,11 +160,11 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
                 for (int i = 0, j = roadworksMarkers.size(); i < j; i++) {
                     roadworksMarkers.get(i).remove();
                 }
-                Roadwork roadwork = null;
-                double tempLat = 0;
-                double tempLon = 0;
-                String tempTitle = "";
-                String tempDescription = "";
+                Roadwork roadwork;
+                double tempLat;
+                double tempLon;
+                String tempTitle;
+                String tempDescription;
                 for (int i = 0, j = roadworkArrayList.size(); i < j; i++) {
                     roadwork = roadworkArrayList.get(i);
                     tempTitle = roadwork.getTitle();
@@ -187,7 +184,10 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.roadworksiconhighdelay)));
 
                     }
-                    marker.setTag("Roadworks - "+i);
+
+                    if (marker != null) {
+                        marker.setTag("Roadworks - "+i);
+                    }
                     roadworksMarkers.add(marker);
                 }
                 storedRoadworkArrayList = roadworkArrayList;
@@ -204,11 +204,11 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
                 for(int i = 0, j = plannedRoadworksMarkers.size(); i<j; i++){
                     plannedRoadworksMarkers.get(i).remove();
                 }
-                PlannedRoadwork plannedRoadwork = null;
-                double tempLat = 0;
-                double tempLon = 0;
-                String tempTitle = "";
-                String tempDescription = "";
+                PlannedRoadwork plannedRoadwork;
+                double tempLat;
+                double tempLon;
+                String tempTitle;
+                String tempDescription;
                 for(int i = 0, j = plannedRoadworkArrayList.size(); i<j; i++){
                     plannedRoadwork = plannedRoadworkArrayList.get(i);
                     tempTitle = plannedRoadwork.getTitle();
@@ -247,15 +247,16 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     @Override
-    public void onAttach(Context context){
+    public void onAttach(@NonNull Context context){
         super.onAttach(context);
-        lm = (LocationManager) this.getActivity().getSystemService(Context.LOCATION_SERVICE);
+        lm = (LocationManager) Objects.requireNonNull(this.getActivity()).getSystemService(Context.LOCATION_SERVICE);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 
         int orientation = this.getResources().getConfiguration().orientation;
+        View view;
         if(orientation == Configuration.ORIENTATION_PORTRAIT){
             //portrait
             view = inflater.inflate(R.layout.fragment_map, container, false);
@@ -281,11 +282,12 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     private void setLocationListener(){
         try{
             if(gpsEnabled){
-                if(ContextCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && lm != null){
+                if(ContextCompat.checkSelfPermission(Objects.requireNonNull(this.getActivity()), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && lm != null){
                     if(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        int MAP_UPDATE_TIME = 5000;
                         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, MAP_UPDATE_TIME, 0, this);
                     }
-                    location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     if(location != null) {
                         latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     }else{
@@ -320,7 +322,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
@@ -354,7 +356,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
 
     private MapStateListener callback;
 
-    public void setMapStateListener(MapStateListener callback){
+    void setMapStateListener(MapStateListener callback){
         this.callback = callback;
     }
 
@@ -366,7 +368,7 @@ public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClick
     @Override
     public boolean onMarkerClick(final Marker marker) {
 
-        String temp = marker.getTag().toString();
+        String temp = Objects.requireNonNull(marker.getTag()).toString();
         String title = temp.split(" - ")[0];
         int position = Integer.parseInt(temp.split(" - ")[1]);
 

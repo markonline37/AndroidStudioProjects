@@ -18,6 +18,7 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DecimalFormat;
@@ -34,6 +35,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private View view;
 
+    //not exact, can update later.
+    private LatLngBounds Scotland = new LatLngBounds(new LatLng(54.39, -7.83), new LatLng(58.66, -0.67));
+
     //pretty the double to 2 decimal places
     private static DecimalFormat df = new DecimalFormat("0.00");
 
@@ -44,30 +48,23 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     //only 1 recyclerviewadapter exists, so change object state.
     void setType(String input){
-        if(input.equals("Incident")){
-            typeIncident = true;
-            typeRoadworks = false;
-            typePlannedRoadworks = false;
-        }else if(input.equals("Roadworks")){
-            typeIncident = false;
-            typeRoadworks = true;
-            typePlannedRoadworks = false;
-        }else if(input.equals("PlannedRoadworks")){
-            typeIncident = false;
-            typeRoadworks = false;
-            typePlannedRoadworks = true;
+        switch (input) {
+            case "Incident":
+                typeIncident = true;
+                typeRoadworks = false;
+                typePlannedRoadworks = false;
+                break;
+            case "Roadworks":
+                typeIncident = false;
+                typeRoadworks = true;
+                typePlannedRoadworks = false;
+                break;
+            case "PlannedRoadworks":
+                typeIncident = false;
+                typeRoadworks = false;
+                typePlannedRoadworks = true;
+                break;
         }
-    }
-
-    String getType(){
-        if(typeIncident){
-            return "Incident";
-        }else if(typeRoadworks){
-            return "Roadworks";
-        }else if(typePlannedRoadworks){
-            return "PlannedRoadworks";
-        }
-        return "";
     }
 
     @NonNull
@@ -80,11 +77,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     // binds the data to the TextView in each row
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if(typeIncident){
             //if no incidents let the user know
             if(dataRepository.getRecyclerIncident().size() == 0){
-                holder.title.setText("No Incidents to display");
+                holder.title.setText(R.string.n_incidents);
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
@@ -111,7 +108,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setVisibility(View.INVISIBLE);
                 if(incident.getDistance() != 0){
-                    holder.distance.setText("Distance: "+df.format(incident.getDistance())+" Miles");
+                    String temp = GlobalContext.getContext().getString(R.string.dist)+df.format(incident.getDistance())+" Miles";
+                    holder.distance.setText(temp);
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.rowDescription, ConstraintSet.BOTTOM, 8);
                 }else{
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.searchGroup, ConstraintSet.TOP);
@@ -121,7 +119,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             }
         }else if(typeRoadworks){
             if(dataRepository.getRecyclerRoadwork().size() == 0){
-                holder.title.setText("No Roadworks to display");
+                holder.title.setText(R.string.no_roadworks);
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
@@ -146,7 +144,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setText(roadwork.getDelay());
                 if(roadwork.getDistance() != 0){
-                    holder.distance.setText("Distance: "+df.format(roadwork.getDistance())+" Miles");
+                    String temp = GlobalContext.getContext().getString(R.string.dist)+df.format(roadwork.getDistance())+" Miles";
+                    holder.distance.setText(temp);
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.rowDelay, ConstraintSet.BOTTOM, 8);
                 }else{
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.searchGroup, ConstraintSet.TOP);
@@ -156,7 +155,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             }
         }else if(typePlannedRoadworks){
             if(dataRepository.getRecyclerPlanned().size() == 0){
-                holder.title.setText("No Planned Roadworks to display");
+                holder.title.setText(R.string.no_planned_roadworks);
                 holder.description.setVisibility(View.INVISIBLE);
                 holder.startDate.setVisibility(View.INVISIBLE);
                 holder.endDate.setVisibility(View.INVISIBLE);
@@ -182,7 +181,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 holder.latLng.setVisibility(View.INVISIBLE);
                 holder.delay.setVisibility(View.INVISIBLE);
                 if(plannedRoadwork.getDistance() != 0){
-                    holder.distance.setText("Distance: "+df.format(plannedRoadwork.getDistance())+" Miles");
+                    String temp = GlobalContext.getContext().getString(R.string.dist)+df.format(plannedRoadwork.getDistance())+" Miles";
+                    holder.distance.setText(temp);
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.rowEndDate, ConstraintSet.BOTTOM, 8);
                 }else{
                     constraintset.connect(R.id.rowDistance, ConstraintSet.TOP, R.id.searchGroup, ConstraintSet.TOP);
@@ -227,9 +227,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, OnMapReadyCallback {
 
-        GoogleMap gMap;
         MapView map;
-
         TextView title;
         TextView description;
         TextView startDate;
@@ -265,30 +263,35 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         @Override
         public void onMapReady(GoogleMap googleMap){
             MapsInitializer.initialize(GlobalContext.getContext());
-            gMap = googleMap;
 
-            int position = getPosition();
+            int position = getAdapterPosition();
             if(typeIncident){
                 //position can be -1 sometimes.
-                if(position >= 0 && position < dataRepository.getRecyclerIncident().size()) {
+                if(dataRepository.getRecyclerIncident().size() == 0){
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(Scotland, 0));
+                }else if(position >= 0 && position < dataRepository.getRecyclerIncident().size()) {
                     Incident temp = dataRepository.getRecyclerIncident().get(position);
                     LatLng latLng = new LatLng(temp.getLat(), temp.getLon());
-                    gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                    gMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.incidenticon)));
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+                    googleMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.incidenticon)));
                 }
             }else if(typeRoadworks){
-                if(position >= 0 && position < dataRepository.getRecyclerRoadwork().size()){
+                if(dataRepository.getRecyclerRoadwork().size() == 0){
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(Scotland, 0));
+                }else if(position >= 0 && position < dataRepository.getRecyclerRoadwork().size()){
                     Roadwork temp = dataRepository.getRecyclerRoadwork().get(position);
                     LatLng latLng = new LatLng(temp.getLat(), temp.getLon());
-                    gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                    gMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.roadworksicon)));
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+                    googleMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.roadworksicon)));
                 }
             }else if(typePlannedRoadworks){
-                if(position >= 0 && position < dataRepository.getRecyclerPlanned().size()){
+                if(dataRepository.getRecyclerPlanned().size() == 0){
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(Scotland, 0));
+                }else if(position >= 0 && position < dataRepository.getRecyclerPlanned().size()){
                     PlannedRoadwork temp = dataRepository.getRecyclerPlanned().get(position);
                     LatLng latLng = new LatLng(temp.getLat(), temp.getLon());
-                    gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-                    gMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.plannedroadworksicon)));
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+                    googleMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.plannedroadworksicon)));
                 }
             }
         }

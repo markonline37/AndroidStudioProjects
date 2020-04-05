@@ -9,11 +9,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+//Recycler view which holds the current journey steps(from 'plan a journey' or 'load a saved journey'), i.e. #1 roadwork, #2 incident (along route)
 public class RecyclerViewJourneySteps extends RecyclerView.Adapter<RecyclerViewJourneySteps.ViewHolder>{
 
     private DataRepository dataRepository;
     private LayoutInflater mInflater;
-    private View view;
 
     RecyclerViewJourneySteps(Context context, DataRepository dataRepository){
         this.mInflater = LayoutInflater.from(context);
@@ -23,17 +23,19 @@ public class RecyclerViewJourneySteps extends RecyclerView.Adapter<RecyclerViewJ
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        view = mInflater.inflate(R.layout.recycler_row_journey, parent, false);
+        View view = mInflater.inflate(R.layout.recycler_row_journey, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if(dataRepository.getRecyclerJourney().size() == 0){
             holder.increment.setVisibility(View.INVISIBLE);
             holder.title.setText("Lucky you!\nNo Roadworks or Incidents to display");
         }else{
-            holder.increment.setText(position+1+": ");
+            holder.increment.setVisibility(View.VISIBLE);
+            String temp = position+1+": ";
+            holder.increment.setText(temp);
             holder.title.setText(dataRepository.getRecyclerJourney().get(position));
         }
     }
@@ -48,7 +50,7 @@ public class RecyclerViewJourneySteps extends RecyclerView.Adapter<RecyclerViewJ
         }
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         TextView increment;
         TextView title;
 

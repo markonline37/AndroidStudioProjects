@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+//serializable because journeyRepository stores saved journeys.
 public class Journey implements Serializable {
 
     private String name;
@@ -17,7 +18,7 @@ public class Journey implements Serializable {
     private String endLocation;
     private List<List<HashMap<String, String>>> journeyResult;
 
-    public Journey(String name, double startLat, double startLng, double endLat, double endLng, Calendar date, String start, String end, List<List<HashMap<String, String>>> result){
+    Journey(String name, double startLat, double startLng, double endLat, double endLng, Calendar date, String start, String end, List<List<HashMap<String, String>>> result){
         setName(name);
         setStartLat(startLat);
         setStartLng(startLng);
@@ -37,71 +38,67 @@ public class Journey implements Serializable {
         return this.name;
     }
 
-    public void setStartLat(double startLat){
+    private void setStartLat(double startLat){
         this.startLat = startLat;
     }
 
-    public double getStartLat(){
+    double getStartLat(){
         return this.startLat;
     }
 
-    public void setStartLng(double startLng){
+    private void setStartLng(double startLng){
         this.startLng = startLng;
     }
 
-    public double getStartLng(){
+    double getStartLng(){
         return this.startLng;
     }
 
-    public void setEndLat(double endLat){
+    private void setEndLat(double endLat){
         this.endLat = endLat;
     }
 
-    public double getEndLat(){
+    double getEndLat(){
         return this.endLat;
     }
 
-    public void setEndLng(double endLng){
+    private void setEndLng(double endLng){
         this.endLng = endLng;
     }
 
-    public double getEndLng(){
+    double getEndLng(){
         return this.endLng;
     }
 
-    public void setTravelDate(Calendar travelDate){
+    private void setTravelDate(Calendar travelDate){
         this.travelDate = travelDate;
     }
 
-    public Calendar getTravelDate(){
+    Calendar getTravelDate(){
         return this.travelDate;
     }
 
-    public long getTravelDateMilli(){
-        return this.travelDate.getTimeInMillis();
-    }
-
-    public String getEndLocation() {
+    String getEndLocation() {
         return endLocation;
     }
 
-    public void setEndLocation(String endLocation) {
+    private void setEndLocation(String endLocation) {
         this.endLocation = endLocation;
     }
 
-    public String getStartLocation() {
+    String getStartLocation() {
         return startLocation;
     }
 
-    public void setStartLocation(String startLocation) {
+    private void setStartLocation(String startLocation) {
         this.startLocation = startLocation;
     }
 
-    public List<List<HashMap<String, String>>> getJourneyResult(){
+    List<List<HashMap<String, String>>> getJourneyResult(){
         return journeyResult;
     }
 
-    public void setJourneyResult(List<List<HashMap<String, String>>> journeyResult) {
+    private void setJourneyResult(List<List<HashMap<String, String>>> journeyResult) {
         this.journeyResult = journeyResult;
     }
 }

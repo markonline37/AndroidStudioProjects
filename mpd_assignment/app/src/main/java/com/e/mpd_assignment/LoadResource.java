@@ -13,20 +13,17 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.Objects;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 public class LoadResource extends AsyncTask<Void, Integer, String> {
 
-    private ProgressBar progressBar;
-    private TextView loadingText;
+    private final ThreadLocal<ProgressBar> progressBar = new ThreadLocal<>();
+    private final ThreadLocal<TextView> loadingText = new ThreadLocal<>();
     private boolean InternetAccess;
     private DataRepository dataRepo;
-
-    private String URLincident = "https://trafficscotland.org/rss/feeds/currentincidents.aspx";
-    private String URLroadWorks = "https://trafficscotland.org/rss/feeds/roadworks.aspx";
-    private String URLplannedRoadWorks = "https://trafficscotland.org/rss/feeds/plannedroadworks.aspx";
 
     //establish a callback that this class can call to inform fragment loading is complete.
     private LoadResourceListener callback;
@@ -35,22 +32,22 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
         void dataFullyLoaded();
     }
 
-    public LoadResource(LoadResourceListener callback){
+    LoadResource(LoadResourceListener callback){
         this.callback = callback;
 
     }
 
-    protected void onPreExecute(ProgressBar progressBar, TextView loadingText, DataRepository dataRepository){
-        this.loadingText = loadingText;
+    void onPreExecute(ProgressBar progressBar, TextView loadingText, DataRepository dataRepository){
+        this.loadingText.set(loadingText);
 
-        this.progressBar = progressBar;
+        this.progressBar.set(progressBar);
         Resources res = GlobalContext.getContext().getResources();
         Drawable draw = res.getDrawable(R.drawable.customprogressbar);
-        this.progressBar.setProgressDrawable(draw);
-        this.progressBar.setMax(3);
+        Objects.requireNonNull(this.progressBar.get()).setProgressDrawable(draw);
+        Objects.requireNonNull(this.progressBar.get()).setMax(3);
 
-        this.progressBar.setProgress(0);
-        this.loadingText.setText("Loading Incidents");
+        Objects.requireNonNull(this.progressBar.get()).setProgress(0);
+        Objects.requireNonNull(this.loadingText.get()).setText(R.string.loading_inc);
 
         this.dataRepo = dataRepository;
         InternetAccess = checkInternetStatus(GlobalContext.getContext());
@@ -88,31 +85,32 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
     @Override
     protected void onProgressUpdate(Integer... update){
         if(update[0] == 0){
-            progressBar.setProgress(0);
-            loadingText.setText("Starting app...");
+            Objects.requireNonNull(progressBar.get()).setProgress(0);
+            Objects.requireNonNull(loadingText.get()).setText(R.string.starting);
         }
         //publishProgress(1)
         else if(update[0] == 1){
-            progressBar.setProgress(1);
-            loadingText.setText("Loading Roadworks");
+            Objects.requireNonNull(progressBar.get()).setProgress(1);
+            Objects.requireNonNull(loadingText.get()).setText(R.string.loading_road);
         }
         //publishProgress(2)
         else if(update[0] == 2){
-            progressBar.setProgress(2);
-            loadingText.setText("Loading Planned Roadworks");
+            Objects.requireNonNull(progressBar.get()).setProgress(2);
+            Objects.requireNonNull(loadingText.get()).setText(R.string.loading_plan);
         }
         //publishProgress(3) - might update to draw UI elements etc in loading screen.
         else if(update[0] == 3){
-            progressBar.setProgress(3);
-            loadingText.setText("Done");
+            Objects.requireNonNull(progressBar.get()).setProgress(3);
+            Objects.requireNonNull(loadingText.get()).setText(R.string.done);
         }
     }
 
 
     private void loadIncidents(){
         try{
-            String result = "";
+            String result;
             if(InternetAccess) {
+                String URLincident = "https://trafficscotland.org/rss/feeds/currentincidents.aspx";
                 result = getStringFromURL(URLincident);
                 if(result.length() > 0){
                     dataRepo.storeIncidentsData(result);
@@ -130,8 +128,9 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
 
     private void loadRoadworks(){
         try{
-            String result = "";
+            String result;
             if(InternetAccess) {
+                String URLroadWorks = "https://trafficscotland.org/rss/feeds/roadworks.aspx";
                 result = getStringFromURL(URLroadWorks);
                 if(result.length() > 0){
                     dataRepo.storeRoadworksData(result);
@@ -149,8 +148,9 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
 
     private void loadPlannedRoadworks(){
         try{
-            String result = "";
+            String result;
             if(InternetAccess) {
+                String URLplannedRoadWorks = "https://trafficscotland.org/rss/feeds/plannedroadworks.aspx";
                 result = getStringFromURL(URLplannedRoadWorks);
                 if(result.length() > 0){
                     dataRepo.storePlannedRoadworksData(result);
@@ -167,19 +167,19 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
     }
 
     private String getStringFromURL(String input){
-        String result = "";
+        StringBuilder result = new StringBuilder();
         try{
             BufferedReader in = new BufferedReader(new InputStreamReader(new URL(input).openConnection().getInputStream()));
-            String inputLine = "";
+            String inputLine;
             in.readLine();
             while ((inputLine = in.readLine()) != null){
-                result += inputLine;
+                result.append(inputLine);
             }
             in.close();
         }catch(Exception e){
             System.out.println("Error-LoadResource-getStringFromURL(): "+e);
         }
-        return result;
+        return result.toString();
     }
 
     private void parseXML(String input){
@@ -209,13 +209,13 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
                         if(xpp.getName().equalsIgnoreCase("item")){
                             roadwork = new Roadwork();
                         }else if(xpp.getName().equalsIgnoreCase("title")){
-                            roadwork.setTitle(xpp.nextText());
+                            Objects.requireNonNull(roadwork).setTitle(xpp.nextText());
                         }else if(xpp.getName().equalsIgnoreCase("description")){
                             String temp = xpp.nextText();
-                            roadwork.setDescription(temp);
+                            Objects.requireNonNull(roadwork).setDescription(temp);
                             roadwork.setDate(temp);
                         }else if(xpp.getName().equalsIgnoreCase("point")){
-                            roadwork.setLatLon(xpp.nextText());
+                            Objects.requireNonNull(roadwork).setLatLon(xpp.nextText());
                         }
                     }
                     //if currently parsing Planned Roadworks
@@ -223,13 +223,13 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
                         if(xpp.getName().equalsIgnoreCase("item")){
                             plannedRoadwork = new PlannedRoadwork();
                         }else if(xpp.getName().equalsIgnoreCase("title")){
-                            plannedRoadwork.setTitle(xpp.nextText());
+                            Objects.requireNonNull(plannedRoadwork).setTitle(xpp.nextText());
                         }else if(xpp.getName().equalsIgnoreCase("description")){
                             String temp = xpp.nextText();
-                            plannedRoadwork.setDescription(temp);
+                            Objects.requireNonNull(plannedRoadwork).setDescription(temp);
                             plannedRoadwork.setDate(temp);
                         }else if(xpp.getName().equalsIgnoreCase("point")){
-                            plannedRoadwork.setLatLon(xpp.nextText());
+                            Objects.requireNonNull(plannedRoadwork).setLatLon(xpp.nextText());
                         }
                     }
                     //if currently parsing Current Incidents
@@ -237,25 +237,25 @@ public class LoadResource extends AsyncTask<Void, Integer, String> {
                         if(xpp.getName().equalsIgnoreCase("item")){
                             incident = new Incident();
                         }else if(xpp.getName().equalsIgnoreCase("title")){
-                            incident.setTitle(xpp.nextText());
+                            Objects.requireNonNull(incident).setTitle(xpp.nextText());
                         }else if(xpp.getName().equalsIgnoreCase("description")){
-                            incident.setDescription(xpp.nextText());
+                            Objects.requireNonNull(incident).setDescription(xpp.nextText());
                         }else if(xpp.getName().equalsIgnoreCase("point")){
-                            incident.setLatLon(xpp.nextText());
+                            Objects.requireNonNull(incident).setLatLon(xpp.nextText());
                         }
                     }
-                } else if(eventType == XmlPullParser.END_TAG){
-                    if(type.equals("Roadworks")){
-                        if(xpp.getName().equalsIgnoreCase("item")){
-                            dataRepo.addRoadwork(roadwork);
-                        }
-                    }else if(type.equals("Planned Roadworks")){
-                        if(xpp.getName().equalsIgnoreCase("item")){
-                            dataRepo.addPlannedRoadwork(plannedRoadwork);
-                        }
-                    }else if(type.equals("Current Incidents")) {
-                        if (xpp.getName().equalsIgnoreCase("item")) {
-                            dataRepo.addIncident(incident);
+                } else if(eventType == XmlPullParser.END_TAG) {
+                    if (xpp.getName().equalsIgnoreCase("item")) {
+                        switch (type) {
+                            case "Roadworks":
+                                dataRepo.addRoadwork(roadwork);
+                                break;
+                            case "Planned Roadworks":
+                                dataRepo.addPlannedRoadwork(plannedRoadwork);
+                                break;
+                            case "Current Incidents":
+                                dataRepo.addIncident(incident);
+                                break;
                         }
                     }
                 }

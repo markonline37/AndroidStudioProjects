@@ -12,6 +12,7 @@
         android:layout_height="80dp"
         android:layout_marginBottom="15dp"
         android:layout_marginTop="15dp"
-        android:background="@drawable/mapicon"/>
+        android:background="@drawable/mapicon"
+        android:contentDescription="@string/main_logo" />
 
 </LinearLayout>

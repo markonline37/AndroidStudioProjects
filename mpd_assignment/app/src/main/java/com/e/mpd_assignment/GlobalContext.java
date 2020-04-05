@@ -1,9 +1,7 @@
 package com.e.mpd_assignment;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 
 public class GlobalContext extends Application {
@@ -21,7 +19,6 @@ public class GlobalContext extends Application {
     }
 
     static public MotionEvent obtainMotionEvent() {
-        MotionEvent event = MotionEvent.obtain(1, 1, 1, 1, 1, 1);
-        return event;
+        return MotionEvent.obtain(1, 1, 1, 1, 1, 1);
     }
 }

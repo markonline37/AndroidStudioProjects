@@ -1,5 +1,6 @@
 package com.e.mpd_assignment;
 
+import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Geocoder;
@@ -13,10 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
@@ -24,16 +25,14 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
-
-import com.google.android.gms.maps.GoogleMap;
 
 //used by incident, roadwork, and planned roadwork lists to display & search the appropriate data.
 public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemClickListener, View.OnClickListener, View.OnTouchListener{
@@ -42,14 +41,13 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
     private FragmentListener callback;
     private DataRepository dataRepository;
 
-    private ScrollView group;
+    private ConstraintLayout group;
     private Button backButton;
     private Button searchButton;
     private Spinner spinnerLatLong;
     private Spinner spinnerPlace;
     private TextView textLat;
     private TextView textLng;
-    private TextView textOr;
     private TextView textMiles;
     private TextView textErrorLatLong;
     private TextView textErrorPlace;
@@ -59,6 +57,8 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
     private Button buttonLatLong;
     private Button buttonPlace;
     private Button buttonReset;
+    private TextView title;
+    private ImageView image;
 
     private RecyclerViewAdapter recyclerViewAdapter;
     private RecyclerView recyclerView;
@@ -69,11 +69,8 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
     private boolean typeRoadwork = false;
     private boolean typePlannedRoadwork = false;
 
-    GoogleMap googleMap;
-    MapView mapView;
-
     //FragmentList is used by incident, roadwork, and planned roadwork (each have their own) to display the list of data so sets the state at creation.
-    public FragmentList(DataRepository dataRepository, RecyclerViewAdapter recyclerViewAdapter, String type, FragmentListener callback){
+    FragmentList(DataRepository dataRepository, RecyclerViewAdapter recyclerViewAdapter, String type, FragmentListener callback){
         if(type.equalsIgnoreCase("Incident")){
             typeIncident = true;
         }else if(type.equalsIgnoreCase("Roadwork")){
@@ -87,11 +84,12 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
     }
 
     //callback used to switch fragment back to map
-    public void setFragmentListener(FragmentListener callback){
+    private void setFragmentListener(FragmentListener callback){
         this.callback = callback;
     }
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    @SuppressLint("ClickableViewAccessibility")
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 
         int orientation = this.getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_PORTRAIT){
@@ -132,7 +130,6 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
 
         textLat = view.findViewById(R.id.textLat);
         textLng = view.findViewById(R.id.textLng);
-        textOr = view.findViewById(R.id.textOr);
         textMiles = view.findViewById(R.id.textMiles);
         textErrorLatLong = view.findViewById(R.id.textErrorLatLong);
         textErrorPlace = view.findViewById(R.id.textErrorPlace);
@@ -143,42 +140,43 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
         group.setOnClickListener(this);
         group.setOnTouchListener(this);
 
-        //hide the search fields initially
-        toggleSearch(true);
-
         view.setOnTouchListener(this);
 
         //set the icon and title based on state.
-        ImageView temp = view.findViewById(R.id.imageIcon);
-        TextView title = view.findViewById(R.id.title);
+        image = view.findViewById(R.id.imageIcon);
+        title = view.findViewById(R.id.title);
         if(typeIncident){
-            temp.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.incidenticon));
-            title.setText("Incidents");
+            image.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.incidenticon));
+            title.setText(R.string.inc_);
         }else if(typeRoadwork){
-            temp.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.roadworksicon));
-            title.setText("Roadworks");
+            image.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.roadworksicon));
+            title.setText(R.string.road_);
         }else if(typePlannedRoadwork){
-            temp.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.plannedroadworksicon));
+            image.setImageDrawable(GlobalContext.getContext().getResources().getDrawable(R.drawable.plannedroadworksicon));
             title.setText("Planned\nRoadworks");
         }
+
+        //hide the search fields initially
+        toggleSearch(true);
 
         return view;
     }
 
     //the soft keyboard gets in the way, click off elements to get rid of it.
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent e){
         InputMethodManager imm = (InputMethodManager)GlobalContext.getContext().getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        Objects.requireNonNull(imm).hideSoftInputFromWindow(view.getWindowToken(), 0);
         return false;
     }
 
     //imaginary 'touch' to programmatically hide the keyboard
-    public void hideKeyBoard(){
+    private void hideKeyBoard(){
         this.onTouch(view, GlobalContext.obtainMotionEvent());
     }
 
-    public void resetSearch(){
+    private void resetSearch(){
         editLat.setText("");
         editLat.setText("");
         editPlace.setText("");
@@ -216,75 +214,70 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
             String lat = editLat.getText().toString();
             String lng = editLng.getText().toString();
             try{
-                LatLng newLatLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                if(newLatLng != null){
-                    if(lat.length() > 0 && lng.length() > 0){
-                        if(lat.contains(",") || lng.contains(",")){
-                            //shouldn't happen because keyboard won't allow it as input
-                            textErrorLatLong.setText("Can't use comma in latitude/longitude");
-                        }else{
-                            //location found
-                            //creates a temporary ArrayList and updates the dataRepository recycler ArrayList with it, then tells recycler to redraw.
-                            toggleSearch(false);
-                            if(typeIncident){
-                                ArrayList<Incident> incidentArrayList = dataRepository.getIncidentArrayList();
-                                Incident temp = null;
-                                ArrayList<Incident> tempArrayList = new ArrayList<>();
-                                TextView textView = (TextView)spinnerLatLong.getSelectedView();
-                                int distance = Integer.parseInt(textView.getText().toString());
-                                for(int i = 0, j = incidentArrayList.size(); i<j; i++){
-                                    temp = incidentArrayList.get(i);
-                                    double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
-                                    if(returnedDistance != -1){
-                                        tempArrayList.add(incidentArrayList.get(i));
-                                        tempArrayList.get(tempArrayList.size()-1).setDistance(returnedDistance);
-                                    }
+                if (lat.length() > 0 && lng.length() > 0) {
+                    if (lat.contains(",") || lng.contains(",")) {
+                        //shouldn't happen because keyboard won't allow it as input
+                        textErrorLatLong.setText(R.string.cant_comma);
+                    } else {
+                        //location found
+                        //creates a temporary ArrayList and updates the dataRepository recycler ArrayList with it, then tells recycler to redraw.
+                        toggleSearch(false);
+                        if (typeIncident) {
+                            ArrayList<Incident> incidentArrayList = dataRepository.getIncidentArrayList();
+                            Incident temp;
+                            ArrayList<Incident> tempArrayList = new ArrayList<>();
+                            TextView textView = (TextView) spinnerLatLong.getSelectedView();
+                            int distance = Integer.parseInt(textView.getText().toString());
+                            for (int i = 0, j = incidentArrayList.size(); i < j; i++) {
+                                temp = incidentArrayList.get(i);
+                                double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
+                                if (returnedDistance != -1) {
+                                    tempArrayList.add(incidentArrayList.get(i));
+                                    tempArrayList.get(tempArrayList.size() - 1).setDistance(returnedDistance);
                                 }
-                                dataRepository.setRecyclerIncident(tempArrayList);
-                            }else if(typeRoadwork){
-                                ArrayList<Roadwork> roadworkArrayList = dataRepository.getRoadworkArrayList();
-                                Roadwork temp = null;
-                                ArrayList<Roadwork> tempArrayList = new ArrayList<>();
-                                TextView textView = (TextView)spinnerLatLong.getSelectedView();
-                                int distance = Integer.parseInt(textView.getText().toString());
-                                for(int i = 0, j = roadworkArrayList.size(); i<j; i++){
-                                    temp = roadworkArrayList.get(i);
-                                    double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
-                                    if(returnedDistance != -1){
-                                        tempArrayList.add(roadworkArrayList.get(i));
-                                        tempArrayList.get(tempArrayList.size()-1).setDistance(returnedDistance);
-                                    }
-                                }
-                                dataRepository.setRecyclerRoadwork(tempArrayList);
-                            }else if(typePlannedRoadwork){
-                                ArrayList<PlannedRoadwork> plannedRoadworkArrayList = dataRepository.getPlannedRoadworkArrayList();
-                                PlannedRoadwork temp = null;
-                                ArrayList<PlannedRoadwork> tempArrayList = new ArrayList<>();
-                                TextView textView = (TextView)spinnerLatLong.getSelectedView();
-                                int distance = Integer.parseInt(textView.getText().toString());
-                                for(int i = 0, j = plannedRoadworkArrayList.size(); i<j; i++){
-                                    temp = plannedRoadworkArrayList.get(i);
-                                    double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
-                                    if(returnedDistance != -1){
-                                        tempArrayList.add(plannedRoadworkArrayList.get(i));
-                                        tempArrayList.get(tempArrayList.size()-1).setDistance(returnedDistance);
-                                    }
-                                }
-                                dataRepository.setRecyclerPlanned(tempArrayList);
                             }
-                            recyclerViewAdapter.notifyDataSetChanged();
-                            buttonReset.setVisibility(View.VISIBLE);
-                            resetSearch();
-                            recyclerView.scrollToPosition(0);
+                            dataRepository.setRecyclerIncident(tempArrayList);
+                        } else if (typeRoadwork) {
+                            ArrayList<Roadwork> roadworkArrayList = dataRepository.getRoadworkArrayList();
+                            Roadwork temp;
+                            ArrayList<Roadwork> tempArrayList = new ArrayList<>();
+                            TextView textView = (TextView) spinnerLatLong.getSelectedView();
+                            int distance = Integer.parseInt(textView.getText().toString());
+                            for (int i = 0, j = roadworkArrayList.size(); i < j; i++) {
+                                temp = roadworkArrayList.get(i);
+                                double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
+                                if (returnedDistance != -1) {
+                                    tempArrayList.add(roadworkArrayList.get(i));
+                                    tempArrayList.get(tempArrayList.size() - 1).setDistance(returnedDistance);
+                                }
+                            }
+                            dataRepository.setRecyclerRoadwork(tempArrayList);
+                        } else if (typePlannedRoadwork) {
+                            ArrayList<PlannedRoadwork> plannedRoadworkArrayList = dataRepository.getPlannedRoadworkArrayList();
+                            PlannedRoadwork temp;
+                            ArrayList<PlannedRoadwork> tempArrayList = new ArrayList<>();
+                            TextView textView = (TextView) spinnerLatLong.getSelectedView();
+                            int distance = Integer.parseInt(textView.getText().toString());
+                            for (int i = 0, j = plannedRoadworkArrayList.size(); i < j; i++) {
+                                temp = plannedRoadworkArrayList.get(i);
+                                double returnedDistance = calculateDistance(temp.getLat(), temp.getLon(), Double.parseDouble(lat), Double.parseDouble(lng), distance);
+                                if (returnedDistance != -1) {
+                                    tempArrayList.add(plannedRoadworkArrayList.get(i));
+                                    tempArrayList.get(tempArrayList.size() - 1).setDistance(returnedDistance);
+                                }
+                            }
+                            dataRepository.setRecyclerPlanned(tempArrayList);
                         }
-                    }else{
-                        textErrorLatLong.setText("Need to enter both fields");
+                        recyclerViewAdapter.notifyDataSetChanged();
+                        buttonReset.setVisibility(View.VISIBLE);
+                        resetSearch();
+                        recyclerView.scrollToPosition(0);
                     }
-                }else{
-                    textErrorLatLong.setText("Error in latitude /longitude");
+                } else {
+                    textErrorLatLong.setText(R.string.need_both_fields);
                 }
             }catch(Exception e){
-                textErrorLatLong.setText("Error in latitude /longitude");
+                textErrorLatLong.setText(R.string.error_lat_lng);
             }
         }else if(v == buttonPlace){
             //if place button pressed
@@ -297,7 +290,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                     //creates a temporary ArrayList which is set in the dataRepository, tells the recycler to redraw list
                     if(typeIncident){
                         ArrayList<Incident> incidentArrayList= dataRepository.getIncidentArrayList();
-                        Incident temp = null;
+                        Incident temp;
                         ArrayList<Incident> tempArrayList = new ArrayList<>();
                         TextView textview = (TextView)spinnerPlace.getSelectedView();
                         int distance = Integer.parseInt(textview.getText().toString());
@@ -312,7 +305,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                         dataRepository.setRecyclerIncident(tempArrayList);
                     }else if(typeRoadwork){
                         ArrayList<Roadwork> roadworkArrayList= dataRepository.getRoadworkArrayList();
-                        Roadwork temp = null;
+                        Roadwork temp;
                         ArrayList<Roadwork> tempArrayList = new ArrayList<>();
                         TextView textview = (TextView)spinnerPlace.getSelectedView();
                         int distance = Integer.parseInt(textview.getText().toString());
@@ -327,7 +320,7 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                         dataRepository.setRecyclerRoadwork(tempArrayList);
                     }else if(typePlannedRoadwork){
                         ArrayList<PlannedRoadwork> plannedRoadworkArrayList = dataRepository.getPlannedRoadworkArrayList();
-                        PlannedRoadwork temp = null;
+                        PlannedRoadwork temp;
                         ArrayList<PlannedRoadwork> tempArrayList = new ArrayList<>();
                         TextView textview = (TextView)spinnerPlace.getSelectedView();
                         int distance = Integer.parseInt(textview.getText().toString());
@@ -346,10 +339,11 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
                     resetSearch();
                     recyclerView.scrollToPosition(0);
                 }else{
-                    textErrorPlace.setText("No address found for: "+place);
+                    String temp = getString(R.string.no_address_found)+place;
+                    textErrorPlace.setText(temp);
                 }
             }else{
-                textErrorPlace.setText("Need to enter a place");
+                textErrorPlace.setText(R.string.need_place);
                 hideKeyBoard();
             }
         }
@@ -383,20 +377,27 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
         ConstraintLayout parentGroup = view.findViewById(R.id.parentGroup);
         constraintset.clone(parentGroup);
         if(hide || init){
+            constraintset.connect(R.id.searchGroup, ConstraintSet.TOP, R.id.parentGroup, ConstraintSet.BOTTOM);
             constraintset.connect(R.id.recycler, ConstraintSet.TOP, R.id.searchButton, ConstraintSet.BOTTOM);
+            constraintset.connect(R.id.searchButton, ConstraintSet.TOP, R.id.backButton, ConstraintSet.BOTTOM);
         }else{
+            constraintset.connect(R.id.searchButton, ConstraintSet.TOP, R.id.parentGroup, ConstraintSet.TOP);
+            constraintset.connect(R.id.searchGroup, ConstraintSet.TOP, R.id.searchButton, ConstraintSet.BOTTOM);
             constraintset.connect(R.id.recycler, ConstraintSet.TOP, R.id.searchGroup, ConstraintSet.BOTTOM);
         }
         constraintset.applyTo(parentGroup);
 
         if(hide || init){
-            searchButton.setText("Show Search");
+
+            backButton.setVisibility(View.VISIBLE);
+            image.setVisibility(View.VISIBLE);
+            title.setVisibility(View.VISIBLE);
+            searchButton.setText(R.string.show_search);
             group.setVisibility(View.INVISIBLE);
             textLat.setVisibility(View.INVISIBLE);
             editLat.setVisibility(View.INVISIBLE);
             textLng.setVisibility(View.INVISIBLE);
             editLng.setVisibility(View.INVISIBLE);
-            textOr.setVisibility(View.INVISIBLE);
             textMiles.setVisibility(View.INVISIBLE);
             spinnerPlace.setVisibility(View.INVISIBLE);
             spinnerLatLong.setVisibility(View.INVISIBLE);
@@ -404,23 +405,27 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
             buttonLatLong.setVisibility(View.INVISIBLE);
             textErrorLatLong.setText("");
             textErrorPlace.setText("");
+            recyclerView.setVisibility(View.VISIBLE);
         }else{
-            searchButton.setText("Hide Search");
+            backButton.setVisibility(View.INVISIBLE);
+            image.setVisibility(View.INVISIBLE);
+            title.setVisibility(View.INVISIBLE);
+            searchButton.setText(R.string.hide_search);
             group.setVisibility(View.VISIBLE);
             textLat.setVisibility(View.VISIBLE);
             editLat.setVisibility(View.VISIBLE);
             textLng.setVisibility(View.VISIBLE);
             editLng.setVisibility(View.VISIBLE);
-            textOr.setVisibility(View.VISIBLE);
             textMiles.setVisibility(View.VISIBLE);
             spinnerPlace.setVisibility(View.VISIBLE);
             spinnerLatLong.setVisibility(View.VISIBLE);
             buttonLatLong.setVisibility(View.VISIBLE);
             buttonPlace.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.INVISIBLE);
         }
     }
 
-    public void scrollTo(int position){
+    void scrollTo(int position){
         shouldScroll = true;
         scrollValue = position;
     }
@@ -445,14 +450,16 @@ public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemC
             recyclerViewAdapter.setType("PlannedRoadworks");
         }
         if(shouldScroll){
+            //backButton.setVisibility(View.VISIBLE);
             recyclerView.scrollToPosition(scrollValue);
             shouldScroll = false;
         }else{
+            //backButton.setVisibility(View.INVISIBLE);
             recyclerView.scrollToPosition(0);
         }
     }
 
-    public LatLng getLatLngFromAddress(String input){
+    private LatLng getLatLngFromAddress(String input){
         Geocoder geocoder = new Geocoder(GlobalContext.getContext(), Locale.getDefault());
         LatLng latLng;
         try{

@@ -18,8 +18,9 @@
         android:id="@+id/journeyTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="Test"
+        android:text=""
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/journeyPosition"
         app:layout_constraintTop_toTopOf="parent" />

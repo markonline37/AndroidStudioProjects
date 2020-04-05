@@ -8,23 +8,21 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 public class FragmentLoadingScreen extends Fragment implements LoadResource.LoadResourceListener{
 
     private FragmentListener callback;
-    private ProgressBar progressBar;
-    private TextView loadingText;
-    private View view;
     private DataRepository dataRepository;
 
     //constructor, used to pass dataRepository to fragment from MainActivity.
-    public FragmentLoadingScreen(DataRepository dataRepository){
+    FragmentLoadingScreen(DataRepository dataRepository){
         this.dataRepository = dataRepository;
     }
 
     //MainActivity listener
-    public void setFragmentListener(FragmentListener callback){
+    void setFragmentListener(FragmentListener callback){
         this.callback = callback;
     }
 
@@ -39,9 +37,10 @@ public class FragmentLoadingScreen extends Fragment implements LoadResource.Load
 
     }
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
 
         int orientation = this.getResources().getConfiguration().orientation;
+        View view;
         if(orientation == Configuration.ORIENTATION_PORTRAIT){
             //portrait
             view = inflater.inflate(R.layout.fragment_loading_screen, container, false);
@@ -49,8 +48,8 @@ public class FragmentLoadingScreen extends Fragment implements LoadResource.Load
             //landscape
             view = inflater.inflate(R.layout.fragment_loading_screen_landscape, container, false);
         }
-        progressBar = view.findViewById(R.id.progressBar);
-        loadingText = view.findViewById(R.id.loadingText);
+        ProgressBar progressBar = view.findViewById(R.id.progressBar);
+        TextView loadingText = view.findViewById(R.id.loadingText);
         LoadResource task = new LoadResource(this);
         task.onPreExecute(progressBar, loadingText, dataRepository);
         task.execute();
