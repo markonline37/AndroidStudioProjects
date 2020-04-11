@@ -17,6 +17,9 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.util.Objects;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //MainActivity creates all of the fragments, objects, and menu.
 //Fragments call callbacks in MainActivity to change functionality of app.
 public class MainActivity extends AppCompatActivity implements FragmentLoadingScreen.FragmentListener,
@@ -202,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements FragmentLoadingSc
         //MainActivity switches fragment to map view and user can now interact
     }
 
+    //MainActivity controls the main menu
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();

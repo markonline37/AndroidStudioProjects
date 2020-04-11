@@ -36,6 +36,9 @@ import android.location.LocationListener;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/*
+    Mark Cottrell - S1627662
+ */
 public class FragmentMapView extends Fragment implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener, LocationListener  {
 
     private DataRepository dataRepository;

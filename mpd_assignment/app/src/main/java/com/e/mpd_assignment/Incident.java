@@ -2,6 +2,9 @@ package com.e.mpd_assignment;
 
 import java.io.Serializable;
 
+/*
+    Mark Cottrell - S1627662
+ */
 class Incident implements Serializable {
     private String title;
     private String description;

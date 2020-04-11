@@ -23,6 +23,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DecimalFormat;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //used by recycler view which works with incidents, roadworks, and plannedRoadworks.
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>{
 

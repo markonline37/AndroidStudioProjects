@@ -5,6 +5,9 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //serializable because journeyRepository stores saved journeys.
 public class Journey implements Serializable {
 

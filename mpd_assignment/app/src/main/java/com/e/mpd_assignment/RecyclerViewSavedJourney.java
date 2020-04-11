@@ -10,6 +10,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //RecyclerView which contains the saved journeys in the journeys homescreen
 public class RecyclerViewSavedJourney extends RecyclerView.Adapter<RecyclerViewSavedJourney.ViewHolder>{
 

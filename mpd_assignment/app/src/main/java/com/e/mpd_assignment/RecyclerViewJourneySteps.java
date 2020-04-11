@@ -9,6 +9,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //Recycler view which holds the current journey steps(from 'plan a journey' or 'load a saved journey'), i.e. #1 roadwork, #2 incident (along route)
 public class RecyclerViewJourneySteps extends RecyclerView.Adapter<RecyclerViewJourneySteps.ViewHolder>{
 

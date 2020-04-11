@@ -14,6 +14,9 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //this class uses code referenced here:
 // https://www.wingsquare.com/blog/drawing-driving-route-directions-between-two-locations-using-google-directions-in-google-map-android/
 //generates a URL based on startLatLng and endLatLng -> parses the data -> generates a List in appropriate format to be returned to FragmentJourney-dataLoaded()

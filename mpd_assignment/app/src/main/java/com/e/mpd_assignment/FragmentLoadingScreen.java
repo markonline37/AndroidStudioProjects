@@ -11,6 +11,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+/*
+    Mark Cottrell - S1627662
+ */
 public class FragmentLoadingScreen extends Fragment implements LoadResource.LoadResourceListener{
 
     private FragmentListener callback;

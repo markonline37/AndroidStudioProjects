@@ -18,6 +18,9 @@ import java.util.Objects;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+/*
+    Mark Cottrell - S1627662
+ */
 public class LoadResource extends AsyncTask<Void, Integer, String> {
 
     private final ThreadLocal<ProgressBar> progressBar = new ThreadLocal<>();

@@ -34,6 +34,9 @@ import java.util.Objects;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //used by incident, roadwork, and planned roadwork lists to display & search the appropriate data.
 public class FragmentList extends Fragment implements  RecyclerViewAdapter.ItemClickListener, View.OnClickListener, View.OnTouchListener{
 

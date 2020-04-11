@@ -3,6 +3,9 @@ package com.e.mpd_assignment;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //separate from dataRepository to serialize only the saved journey.
 class JourneyRepository implements Serializable {
 

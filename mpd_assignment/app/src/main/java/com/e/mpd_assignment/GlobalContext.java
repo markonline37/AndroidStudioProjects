@@ -4,6 +4,9 @@ import android.app.Application;
 import android.content.Context;
 import android.view.MotionEvent;
 
+/*
+    Mark Cottrell - S1627662
+ */
 public class GlobalContext extends Application {
     private static Context appContext;
 

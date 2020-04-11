@@ -18,6 +18,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/*
+    Mark Cottrell - S1627662
+ */
 //could update this class to use the singleton pattern and integrate LoadResource to reduce duplication.
 public class LoadResourcePeriodic extends AsyncTask<Void, Void, Void> {
 

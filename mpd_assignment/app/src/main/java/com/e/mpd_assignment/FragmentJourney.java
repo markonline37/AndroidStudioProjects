@@ -49,6 +49,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 /*
+    Mark Cottrell - S1627662
     Handles the entire journey menu, switches 'state' based on what the user is doing;
     View default (journey homescreen, can load/delete saved journeys)
         -> Plan a journey
@@ -117,6 +118,8 @@ public class FragmentJourney extends Fragment implements View.OnClickListener,
     //asynctask callback, once the data is gathered from maps and parsed, draws routes on screen.
     @Override
     public void dataLoaded(List<List<HashMap<String, String>>> result){
+
+        map.clear();
 
         journeyResult = result;
         dataRepository.resetRecyclerJourney();
